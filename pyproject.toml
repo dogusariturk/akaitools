@@ -77,7 +77,12 @@ select = [
     "W", # pycodestyle Warnings
 ]
 ignore = [
+    "E501", # line too long
+    "PLC0415", # import outside top-level
+    "PLR0912", # too many branches
+    "PLR0913", # too many arguments
     "PLR2004", # magic value used in comparison
+    "TC003", # typing only standard library import
 ]
 pydocstyle.convention = "google"
 
