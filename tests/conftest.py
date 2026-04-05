@@ -110,16 +110,6 @@ def nife_spc() -> Path:
 
 
 @pytest.fixture
-def gaas_spc() -> Path:
-    """Return the AkaiKKR sample GaAs SPC log output path.
-
-    Returns:
-        The path to the fixture file.
-    """
-    return SAMPLES / "out" / "gaas.spc"
-
-
-@pytest.fixture
 def gaas_dos() -> Path:
     """Return the AkaiKKR sample GaAs DOS output path.
 

@@ -37,7 +37,7 @@ c  "end" means the end of input data
 c  "end" is not necessary unless other data used only
 c   for "spc" exist below.
 c----------------------Fe------------------------------------
- end
+#end
 # The following data are used in the 'spc' mode.
 # number of k-point along symmetry line
  300

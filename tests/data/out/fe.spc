@@ -1,5 +1,5 @@
-  2-Apr-2026
-    13:21:10
+  4-Apr-2026
+    12:05:26
     meshr   mse    ng   mxl
       400   201    21     3
 
@@ -118,7 +118,7 @@
      g     1  1 1 1  1 1 1  1 1 1  1 1 1 1  1 1 1 1  1 1 1 1 1 1
      u     1  1 1 1  1 1 1  1 1 1  1 1 1 1  1 1 1 1  1 1 1 1 1 1
 
-   last=  243   np=  19   ngpt= 273   nrpt= 169   nk=   1661   nd=    1
+   last=  243   np=  19   ngpt= 273   nrpt= 169   nk=   1961   nd=    1
 
    core configuration for Z= 26
    state  1s 2s 2p 3s 3p 3d 4s 4p 4d 5s 5p 4f 5d 6s 6p 5f 6d 7s
@@ -129,7 +129,7 @@
       Fe
    itr=  1 neu=    3.7086  moment=  0.0701  te=  -2520.62327292  err=  0.978
    *** no convergence
-   interval=  1     cpu time=      0.48 sec
+   interval=  1     cpu time=      0.51 sec
    sdftyp=mjwas   reltyp=nrl     dmpc= 0.03500
       Fe
    itr=  1  neu  3.7086  chr,spn  11.6256195   0.0700719  intc,ints  0.0000  0.0000
@@ -176,4 +176,4 @@
  Host: spark-b464
  Machine: aarch64
  numcor: 18
- elapsed time         0.86 sec ( 18 threads)
+ elapsed time         0.97 sec ( 18 threads)

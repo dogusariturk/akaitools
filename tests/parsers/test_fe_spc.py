@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pytest
 
 from akaitools import parse_spc
@@ -55,7 +56,7 @@ class TestFeSPC:
         assert self.r.spc_params.np == 19
         assert self.r.spc_params.ngpt == 273
         assert self.r.spc_params.nrpt == 169
-        assert self.r.spc_params.nk == 1661
+        assert self.r.spc_params.nk == 1961
         assert self.r.spc_params.nd == 1
 
     def test_spc_params_symop(self) -> None:
@@ -112,28 +113,39 @@ class TestFeSPCWithData:
         """Spectral up data is loaded when base_dir is provided."""
         assert self.r.spectral_up is not None
 
-    def test_spectral_up_empty_matrix(self) -> None:
-        """Fe up.spc has n_sym_points=0, so data is None."""
+    def test_spectral_up_populated(self) -> None:
+        """Fe up.spc contains a populated BSF matrix."""
         assert self.r.spectral_up is not None
-        assert self.r.spectral_up.data is None
+        assert self.r.spectral_up.data is not None
+        assert self.r.spectral_up.data.shape == (200, 300)
         assert self.r.spectral_up.spin == "up"
+        assert np.all(self.r.spectral_up.data >= 0.0)
 
     def test_spectral_up_kmesh(self) -> None:
         """k-mesh metadata for the Fe up channel is parsed correctly."""
         assert self.r.spectral_up is not None
         km = self.r.spectral_up.kmesh
         assert km.n_energy == 200
-        assert km.n_sym_points == 0
+        assert km.n_sym_points == 6
         assert km.energy_min == pytest.approx(-0.4975, rel=1e-4)
         assert km.energy_max == pytest.approx(0.4975, rel=1e-4)
-        assert km.high_symmetry_indices == {}
+        assert km.high_symmetry_indices == {
+            1: "(0 0 0)",
+            80: "(0 1 0)",
+            136: "(1/2 1/2 0)",
+            176: "(1/2 1/2 1/2)",
+            244: "(0 0 0)",
+            300: "(1/2 1/2 0)",
+        }
 
     def test_spectral_down_loaded(self) -> None:
         """Spectral down data is loaded when base_dir is provided."""
         assert self.r.spectral_down is not None
 
-    def test_spectral_down_empty_matrix(self) -> None:
-        """Fe down.spc has n_sym_points=0, so data is None."""
+    def test_spectral_down_populated(self) -> None:
+        """Fe down.spc contains a populated BSF matrix."""
         assert self.r.spectral_down is not None
-        assert self.r.spectral_down.data is None
+        assert self.r.spectral_down.data is not None
+        assert self.r.spectral_down.data.shape == (200, 300)
         assert self.r.spectral_down.spin == "down"
+        assert np.all(self.r.spectral_down.data >= 0.0)

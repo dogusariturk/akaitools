@@ -78,13 +78,22 @@ class TestParseSPCParams:
 class TestParseSpectralFunction:
     """Tests for parse_spectral_function."""
 
-    def test_empty_matrix_returns_none_data(self) -> None:
-        """Fe spectral data has n_sym_points=0, so data must be None."""
+    def test_fe_matrix_is_populated(self) -> None:
+        """Fe spectral data is parsed as a populated matrix with 6 labels."""
         sf = parse_spectral_function(SAMPLES / "data" / "fe_up.spc", "up")
         assert sf.spin == "up"
-        assert sf.data is None
-        assert sf.kmesh.n_sym_points == 0
+        assert sf.data is not None
+        assert sf.data.shape == (200, 300)
+        assert sf.kmesh.n_sym_points == 6
         assert sf.kmesh.n_energy == 200
+        assert sf.kmesh.high_symmetry_indices == {
+            1: "(0 0 0)",
+            80: "(0 1 0)",
+            136: "(1/2 1/2 0)",
+            176: "(1/2 1/2 1/2)",
+            244: "(0 0 0)",
+            300: "(1/2 1/2 0)",
+        }
 
     def test_populated_matrix_has_correct_shape(self) -> None:
         """NiFe spectral data has 6 sym points and 300 k-columns."""
