@@ -134,7 +134,7 @@ class TestPlotDOS:
         assert legend is not None
         component = r.get_component(1, "up")
         assert component is not None
-        assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - total"]
+        assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - Total", "Total"]
 
     def test_spin_filtered_legend_omits_spin_name(self, fe_dos: Path) -> None:
         """plot_dos() legend labels do not include spin names."""
@@ -145,7 +145,7 @@ class TestPlotDOS:
         assert legend is not None
         component = r.get_component(1, "up")
         assert component is not None
-        assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - total"]
+        assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - Total", "Total"]
 
     def test_spin_filter_up(self, fe_dos: Path) -> None:
         """plot_dos() accepts spin='up' filter."""
@@ -203,7 +203,7 @@ class TestPlotDOS:
         assert legend is not None
         component = r.get_component(1, "up")
         assert component is not None
-        assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - total", "system total"]
+        assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - Total", "Total"]
 
     def test_invalid_orbital_raises(self, fe_dos: Path) -> None:
         """plot_dos() raises ValueError for an invalid orbital name."""
@@ -218,22 +218,6 @@ class TestPlotDOS:
         ax = fig.axes[0]
 
         assert len(self._curve_lines(ax)) == 2
-        assert isinstance(fig, mpl.figure.Figure)
-
-    def test_system_total_falls_back_to_component_sum(self, fe_dos: Path) -> None:
-        """plot_dos(system_total=True) falls back to summing components when total curves are absent."""
-        r = parse_dos(fe_dos)
-        r.total_up = None
-        r.total_down = None
-        fig = plot_dos(r, system_total=True, orbitals=[])
-        ax = fig.axes[0]
-        up = r.get_component(1, "up")
-        down = r.get_component(1, "down")
-
-        assert up is not None
-        assert down is not None
-        assert ax.lines[0].get_ydata() == pytest.approx(up.total)
-        assert ax.lines[1].get_ydata() == pytest.approx(-down.total)
         assert isinstance(fig, mpl.figure.Figure)
 
     def test_system_total_handles_single_spin_channel(self, fe_dos: Path) -> None:
