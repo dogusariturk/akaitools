@@ -4,27 +4,21 @@
 
 ### Which AkaiKKR versions are supported?
 
-akaitools is tested against output files from the version distributed at
-[kkr.issp.u-tokyo.ac.jp](http://kkr.issp.u-tokyo.ac.jp/).  The output format
-has been stable for many years, so older files should parse correctly.  If you
-encounter a format mismatch, please open an issue on GitHub.
+akaitools is tested against output files from the version distributed at [kkr.issp.u-tokyo.ac.jp](http://kkr.issp.u-tokyo.ac.jp/).  The output format has been stable for many years, so older files should parse correctly.  If you encounter a format mismatch, please open an issue on GitHub.
 
 ### Which output file types are supported?
 
 | AkaiKKR run type | Parser function | Result type |
 |------------------|-----------------|-------------|
-| `go=scf`         | `parse_go()`    | `GOResult`  |
+| `go=go`          | `parse_go()`    | `GOResult`  |
 | `go=dos`         | `parse_dos()`   | `DOSResult` |
 | `go=spc`         | `parse_spc()`   | `SPCResult` |
 
-All three parsers share common logic for sections that appear in every output
-file (lattice, atom types, atomic properties, system info) and each additionally
-extracts the section unique to its run type.
+All three parsers share common logic for sections that appear in every output file (lattice, atom types, atomic properties, system info), and each additionally extracts the section unique to its run type.
 
 ### What units does the parser use?
 
-All quantities are returned in the **native AkaiKKR units** unless the plotting
-utilities are used with `energy_unit="eV"`:
+All quantities are returned in the **native AkaiKKR units** unless the plotting utilities are used with `energy_unit="eV"`:
 
 | Quantity             | Unit               |
 |----------------------|--------------------|
@@ -41,15 +35,11 @@ utilities are used with `energy_unit="eV"`:
 
 ### What is a "CPA component"?
 
-In CPA calculations, each crystallographic site can be occupied by a mixture of
-chemical species.  Each species on a site is called a **component**, identified
-by its `component_index`.  For a pure element, there is only one component per
-site.  For a 50/50 binary alloy on one sublattice, there are two.
+In CPA calculations, each crystallographic site can be occupied by a mixture of chemical species.  Each species on a site is called a **component**, identified by its `component_index`.  For a pure element, there is only one component per site.  For a 50/50 binary alloy on one sublattice, there are two.
 
 ### How do I access the DOS for a specific element or site?
 
-Use exact lookup for one known component, or metadata-based selection when the
-same element appears on multiple inequivalent sites:
+Use exact lookup for one known component, or metadata-based selection when the same element appears on multiple inequivalent sites:
 
 ```python
 # Exact access
@@ -70,9 +60,7 @@ mixed_x = dos.select(label="XY_2:X", spin="up")
 
 ### Why does `spin_down` return an empty list?
 
-The calculation was likely non-magnetic (`magtyp=nmag`).  In non-magnetic runs
-AkaiKKR does not compute separate spin channels; only `spin_up` will contain
-data.
+The calculation was likely non-magnetic (`magtyp=nmag`).  In non-magnetic runs AkaiKKR does not compute separate spin channels; only `spin_up` will contain data.
 
 ### How do I compute the total DOS (sum over all sites)?
 
@@ -97,9 +85,7 @@ ax.legend()
 
 ### Where is the Fermi energy?
 
-AkaiKKR does not write the Fermi energy explicitly in the output file.  You can
-infer it from the energy axis of the DOS file (the zero of the energy mesh is
-typically set near the Fermi level) or compute it from the integrated DOS.
+AkaiKKR does not write the Fermi energy explicitly in the output file.  You can infer it from the energy axis of the DOS file (the zero of the energy mesh is typically set near the Fermi level) or compute it from the integrated DOS.
 
 ### How do I extract the total magnetic moment?
 
@@ -122,10 +108,7 @@ for prop in scf.atomic_properties:
 
 ### Why is `spectral_up` or `spectral_down` `None`?
 
-`parse_spc()` auto-discovers the `*_up.spc` / `*_dn.spc` data files next to the
-log file.  If a data file cannot be found, the corresponding attribute is `None`
-rather than raising an error.  Check the file paths and, if needed, pass them
-explicitly:
+`parse_spc()` auto-discovers the `*_up.spc` / `*_dn.spc` data files next to the log file.  If a data file cannot be found, the corresponding attribute is `None` rather than raising an error.  Check the file paths and, if needed, pass them explicitly:
 
 ```python
 spc = parse_spc("calculation.spc", data_up="fe_up.spc", data_down="fe_dn.spc")
@@ -133,9 +116,7 @@ spc = parse_spc("calculation.spc", data_up="fe_up.spc", data_down="fe_dn.spc")
 
 ### Why is `SpectralFunction.data` `None` even though the file was found?
 
-The header of the data file records `n_sym_points`.  When `n_sym_points == 0`
-no k-path was computed for that spin channel and no data rows are present.
-Always check before indexing:
+The header of the data file records `n_sym_points`.  When `n_sym_points == 0` no k-path was computed for that spin channel and no data rows are present. Always check before indexing:
 
 ```python
 if spc.spectral_up is not None and spc.spectral_up.data is not None:
@@ -144,9 +125,7 @@ if spc.spectral_up is not None and spc.spectral_up.data is not None:
 
 ### What are the units of the BSF intensity?
 
-The Bloch Spectral Function intensity stored in `SpectralFunction.data` is in
-**states / Ry / cell** (same units as the DOS).  The energy axis runs from
-`kmesh.energy_min` to `kmesh.energy_max` in **Ry** with `kmesh.n_energy` points.
+The Bloch Spectral Function intensity stored in `SpectralFunction.data` is in **states / Ry / cell** (same units as the DOS).  The energy axis runs from `kmesh.energy_min` to `kmesh.energy_max` in **Ry** with `kmesh.n_energy` points.
 
 ---
 

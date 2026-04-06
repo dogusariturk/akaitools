@@ -1,6 +1,6 @@
 # Usage
 
-akaitools turns AkaiKKR plain-text output into structured Python objects with a single function call:
+`akaitools` turns AkaiKKR plain-text output into structured Python objects with a single function call:
 
 ```python
 from akaitools import parse_go, parse_dos, parse_spc
