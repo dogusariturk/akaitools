@@ -1,0 +1,36 @@
+c----------------------Li------------------------------------
+     spc  data/li
+c------------------------------------------------------------
+c   brvtyp     a        c/a   b/a   alpha   beta   gamma
+     bcc      6.633  ,      ,      ,      ,       ,      ,
+c------------------------------------------------------------
+c   edelt    ewidth    reltyp   sdftyp   magtyp   record
+    0.001     1.2       sra      mjwasa      nmag      2nd
+c------------------------------------------------------------
+c   outtyp    bzqlty   maxitr   pmix
+    update      20       100    0.035
+c------------------------------------------------------------
+c    ntyp
+      1
+c------------------------------------------------------------
+c   type    ncmp    rmt    field   mxl  anclr   conc
+    Li       1       1      0.0     2
+                                           3    100
+c------------------------------------------------------------
+c   natm
+     1
+c------------------------------------------------------------
+c   atmicx                        atmtyp
+     0          0          0        Li
+c------------------------------------------------------------
+#end
+# number of k-point along symmetry line
+ 300
+# For bcc bravais lattice, the dispersion relation along
+# G-H-N-P-G-N symmetry points (below) is usually calculated.
+ 0 0 0
+ 0 1 0
+ 1/2 1/2 0
+ 1/2 1/2 1/2
+ 0 0 0
+ 1/2 1/2 0

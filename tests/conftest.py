@@ -117,3 +117,33 @@ def gaas_dos() -> Path:
         The path to the fixture file.
     """
     return SAMPLES / "out" / "gaas.dos"
+
+
+@pytest.fixture
+def li_go() -> Path:
+    """Return the AkaiKKR sample Li GO output path.
+
+    Returns:
+        The path to the fixture file.
+    """
+    return SAMPLES / "out" / "li"
+
+
+@pytest.fixture
+def li_dos() -> Path:
+    """Return the AkaiKKR sample Li DOS output path.
+
+    Returns:
+        The path to the fixture file.
+    """
+    return SAMPLES / "out" / "li.dos"
+
+
+@pytest.fixture
+def li_spc() -> Path:
+    """Return the AkaiKKR sample Li SPC log output path.
+
+    Returns:
+        The path to the fixture file.
+    """
+    return SAMPLES / "out" / "li.spc"
