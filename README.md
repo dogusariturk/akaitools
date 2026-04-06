@@ -2,8 +2,6 @@
 
 # akaitools
 
-**A Python library for parsing and analyzing [AkaiKKR](http://kkr.issp.u-tokyo.ac.jp/) electronic structure output files**
-
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://spdx.org/licenses/GPL-3.0-or-later.html)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://github.com/dogusariturk/akaitools)
@@ -11,13 +9,17 @@
 [![Tests](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml)
 [![Lint](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml)
 
-[Documentation](https://dogusariturk.github.io/akaitools) · [Report a Bug](https://github.com/dogusariturk/akaitools/issues/new?labels=bug) · [Request a Feature](https://github.com/dogusariturk/akaitools/issues/new?labels=enhancement)
+`akaitools` parses output files from [AkaiKKR](http://kkr.issp.u-tokyo.ac.jp/), a Korringa–Kohn–Rostoker (KKR) Green's function code for electronic structure calculations. It turns raw text output into structured Python objects ready for analysis and visualization.
+
+<p>
+  <a href="https://github.com/dogusariturk/akaitools/issues/new?labels=bug">Report a Bug</a> |
+  <a href="https://github.com/dogusariturk/akaitools/issues/new?labels=enhancement">Request a Feature</a> |
+  <a href="https://dogusariturk.github.io/akaitools">Documentation</a>
+</p>
 
 </div>
 
 ---
-
-`akaitools` parses output files from **AkaiKKR**, a Korringa–Kohn–Rostoker (KKR) Green's function code for electronic structure calculations. It turns raw text output into structured Python objects ready for analysis and visualization.
 
 **What it parses:**
 
