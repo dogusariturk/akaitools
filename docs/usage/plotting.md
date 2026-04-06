@@ -17,22 +17,24 @@ fig = plot_dos(
 fig.savefig("dos.png", dpi=150)
 ```
 
-## Spin-resolved DOS
+## System Total DOS Overlay
 
 ```python
-from akaitools.plot import plot_dos_spin
+from akaitools.plot import plot_dos
 
-fig = plot_dos_spin(
+fig = plot_dos(
     dos,
-    component=1,
     ef=0.0,
-    orbital="d",
+    orbitals=["total"],          # component totals
+    system_total=True,           # add whole-system total DOS
     energy_unit="eV",
 )
-fig.savefig("dos_spin.png", dpi=150)
+fig.savefig("dos_overlay.png", dpi=150)
 ```
 
-The spin-down DOS is **reflected below zero** in this plot, which is the conventional representation for spin-resolved DOS.
+To plot only the system total DOS, pass `orbitals=[]` together with `system_total=True`.
+
+When both spin channels are present, spin-down DOS is **reflected below zero**. Non-magnetic systems naturally produce a single curve above zero.
 
 ## SCF convergence
 

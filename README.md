@@ -115,10 +115,10 @@ if spc.spectral_up is not None:
 `akaitools.plot` provides ready-made Matplotlib figures for the most common visualizations. All functions return a `Figure` object for further customization before saving.
 
 ```python
-from akaitools.plot import plot_dos, plot_dos_spin, plot_convergence
+from akaitools.plot import plot_dos, plot_convergence
 
 plot_dos(dos, ef=0.0, orbitals=["total", "d"]).savefig("dos.png")
-plot_dos_spin(dos, component=1, orbital="d").savefig("dos_spin.png")
+plot_dos(dos, orbitals=["total"], system_total=True).savefig("dos_overlay.png")
 plot_convergence(scf, field="rms_error").savefig("convergence.png")
 ```
 

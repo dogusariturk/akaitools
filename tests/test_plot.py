@@ -5,16 +5,27 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import matplotlib as mpl
+import matplotlib.axes
 import matplotlib.figure
+import matplotlib.lines
+import matplotlib.pyplot as plt
+import numpy as np
 import pytest
+from matplotlib.ticker import ScalarFormatter
 
 mpl.use("Agg")
 
 from akaitools import parse_dos, parse_go
-from akaitools.plot import plot_convergence, plot_dos, plot_dos_spin
+from akaitools.plot import _RY_TO_EV, plot_convergence, plot_dos
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+
+@pytest.fixture(autouse=True)
+def close_figures() -> None:
+    """Close Matplotlib figures after each test."""
+    plt.close("all")
 
 
 class TestPlotConvergence:
@@ -38,6 +49,26 @@ class TestPlotConvergence:
         fig = plot_convergence(r, field="total_energy")
         assert fig is not None
 
+    def test_iteration_axis_starts_at_zero(self, fe_go: Path) -> None:
+        """plot_convergence() anchors the iteration axis at zero."""
+        r = parse_go(fe_go)
+        fig = plot_convergence(r)
+        ax = fig.axes[0]
+        assert ax.get_xlim()[0] == pytest.approx(0.0)
+
+    def test_total_energy_uses_mathtext_without_offset(self, fe_go: Path) -> None:
+        """plot_convergence() disables additive axis offsets."""
+        r = parse_go(fe_go)
+        fig = plot_convergence(r, field="total_energy")
+        ax = fig.axes[0]
+        formatter = ax.yaxis.get_major_formatter()
+
+        fig.canvas.draw()
+
+        assert isinstance(formatter, ScalarFormatter)
+        assert formatter.get_useOffset() is False
+        assert ax.yaxis.get_offset_text().get_text() == ""
+
     def test_no_iterations_returns_figure(self, fe_go: Path) -> None:
         """plot_convergence() handles an empty iterations list gracefully."""
         r = parse_go(fe_go)
@@ -48,6 +79,15 @@ class TestPlotConvergence:
 
 class TestPlotDOS:
     """Tests for plot_dos()."""
+
+    @staticmethod
+    def _curve_lines(ax: mpl.axes.Axes) -> list[mpl.lines.Line2D]:
+        """Return plotted DOS curves, excluding reference guide lines."""
+        return [
+            line
+            for line in ax.lines
+            if len(set(np.asarray(line.get_xdata()).tolist())) > 1 and len(set(np.asarray(line.get_ydata()).tolist())) > 1
+        ]
 
     def test_returns_figure(self, fe_dos: Path) -> None:
         """plot_dos() returns a Matplotlib Figure."""
@@ -60,6 +100,52 @@ class TestPlotDOS:
         r = parse_dos(fe_dos)
         fig = plot_dos(r, energy_unit="eV")
         assert fig is not None
+
+    def test_energy_unit_ev_converts_dos_values(self, fe_dos: Path) -> None:
+        """plot_dos() rescales DOS from states/Ry to states/eV."""
+        r = parse_dos(fe_dos)
+        fig = plot_dos(r, components=[1], spin="up", orbitals=["total"], energy_unit="eV")
+
+        ax = fig.axes[0]
+        component = next(c for c in r.dos_components if c.component_index == 1 and c.spin == "up")
+
+        assert ax.get_ylabel() == "DOS (states/eV/cell)"
+        assert ax.lines[0].get_ydata() == pytest.approx(component.total / _RY_TO_EV)
+
+    def test_has_vertical_padding(self, fe_dos: Path) -> None:
+        """plot_dos() leaves a small y-margin above and below the curves."""
+        r = parse_dos(fe_dos)
+        fig = plot_dos(r, components=[1])
+        ax = fig.axes[0]
+        curves = self._curve_lines(ax)
+        ymin = min(float(min(np.asarray(line.get_ydata()).tolist())) for line in curves)
+        ymax = max(float(max(np.asarray(line.get_ydata()).tolist())) for line in curves)
+        axis_ymin, axis_ymax = ax.get_ylim()
+
+        assert axis_ymin < ymin
+        assert axis_ymax > ymax
+
+    def test_legend_merges_spin_channels(self, fe_dos: Path) -> None:
+        """plot_dos() uses one legend entry for up/down of the same orbital."""
+        r = parse_dos(fe_dos)
+        fig = plot_dos(r, components=[1], orbitals=["total"])
+        legend = fig.axes[0].get_legend()
+
+        assert legend is not None
+        component = r.get_component(1, "up")
+        assert component is not None
+        assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - total"]
+
+    def test_spin_filtered_legend_omits_spin_name(self, fe_dos: Path) -> None:
+        """plot_dos() legend labels do not include spin names."""
+        r = parse_dos(fe_dos)
+        fig = plot_dos(r, components=[1], spin="up", orbitals=["total"])
+        legend = fig.axes[0].get_legend()
+
+        assert legend is not None
+        component = r.get_component(1, "up")
+        assert component is not None
+        assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - total"]
 
     def test_spin_filter_up(self, fe_dos: Path) -> None:
         """plot_dos() accepts spin='up' filter."""
@@ -91,50 +177,81 @@ class TestPlotDOS:
         fig = plot_dos(r)
         assert isinstance(fig, mpl.figure.Figure)
 
-
-class TestPlotDOSSpin:
-    """Tests for plot_dos_spin()."""
-
-    def test_returns_figure_total(self, fe_dos: Path) -> None:
-        """plot_dos_spin() with component=None plots total spin DOS."""
+    def test_system_total_overlay_returns_figure(self, fe_dos: Path) -> None:
+        """plot_dos(system_total=True) overlays the system total DOS."""
         r = parse_dos(fe_dos)
-        fig = plot_dos_spin(r)
+        fig = plot_dos(r, system_total=True)
         assert isinstance(fig, mpl.figure.Figure)
 
-    def test_total_with_ev(self, fe_dos: Path) -> None:
-        """plot_dos_spin() with energy_unit='eV' works for total DOS."""
+    def test_system_total_overlay_with_ev(self, fe_dos: Path) -> None:
+        """plot_dos(system_total=True) with energy_unit='eV' rescales total DOS."""
         r = parse_dos(fe_dos)
-        fig = plot_dos_spin(r, energy_unit="eV")
-        assert fig is not None
+        fig = plot_dos(r, system_total=True, orbitals=[], energy_unit="eV")
+        ax = fig.axes[0]
+        total_up = r.total_up
 
-    def test_single_component(self, fe_dos: Path) -> None:
-        """plot_dos_spin() with a single component index."""
+        assert total_up is not None
+        assert ax.get_ylabel() == "DOS (states/eV/cell)"
+        assert ax.lines[0].get_ydata() == pytest.approx(total_up.values / _RY_TO_EV)
+
+    def test_system_total_overlay_uses_distinct_legend_entry(self, fe_dos: Path) -> None:
+        """plot_dos(system_total=True) adds a system-total legend entry."""
         r = parse_dos(fe_dos)
-        fig = plot_dos_spin(r, component=1)
-        assert isinstance(fig, mpl.figure.Figure)
+        fig = plot_dos(r, components=[1], orbitals=["total"], system_total=True)
+        legend = fig.axes[0].get_legend()
 
-    def test_multiple_components(self, nife_dos: Path) -> None:
-        """plot_dos_spin() with a list of component indices."""
-        r = parse_dos(nife_dos)
-        fig = plot_dos_spin(r, component=[1, 2])
-        assert isinstance(fig, mpl.figure.Figure)
-
-    def test_orbital_d(self, fe_dos: Path) -> None:
-        """plot_dos_spin() accepts orbital='d'."""
-        r = parse_dos(fe_dos)
-        fig = plot_dos_spin(r, component=1, orbital="d")
-        assert fig is not None
+        assert legend is not None
+        component = r.get_component(1, "up")
+        assert component is not None
+        assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - total", "system total"]
 
     def test_invalid_orbital_raises(self, fe_dos: Path) -> None:
-        """plot_dos_spin() raises ValueError for an invalid orbital name."""
+        """plot_dos() raises ValueError for an invalid orbital name."""
         r = parse_dos(fe_dos)
         with pytest.raises(ValueError, match="Unknown orbital"):
-            plot_dos_spin(r, component=1, orbital="xyz")
+            plot_dos(r, components=[1], orbitals=["xyz"])
 
-    def test_no_total_curves(self, fe_dos: Path) -> None:
-        """plot_dos_spin() with component=None handles missing total curves."""
+    def test_system_total_only_with_empty_orbitals(self, fe_dos: Path) -> None:
+        """plot_dos() can show only the system total by passing orbitals=[]."""
+        r = parse_dos(fe_dos)
+        fig = plot_dos(r, system_total=True, orbitals=[])
+        ax = fig.axes[0]
+
+        assert len(self._curve_lines(ax)) == 2
+        assert isinstance(fig, mpl.figure.Figure)
+
+    def test_system_total_falls_back_to_component_sum(self, fe_dos: Path) -> None:
+        """plot_dos(system_total=True) falls back to summing components when total curves are absent."""
         r = parse_dos(fe_dos)
         r.total_up = None
         r.total_down = None
-        fig = plot_dos_spin(r)
+        fig = plot_dos(r, system_total=True, orbitals=[])
+        ax = fig.axes[0]
+        up = r.get_component(1, "up")
+        down = r.get_component(1, "down")
+
+        assert up is not None
+        assert down is not None
+        assert ax.lines[0].get_ydata() == pytest.approx(up.total)
+        assert ax.lines[1].get_ydata() == pytest.approx(-down.total)
+        assert isinstance(fig, mpl.figure.Figure)
+
+    def test_system_total_handles_single_spin_channel(self, fe_dos: Path) -> None:
+        """plot_dos(system_total=True) works when only one spin channel is available."""
+        r = parse_dos(fe_dos)
+        r.total_down = None
+        r.dos_components = [comp for comp in r.dos_components if comp.spin == "up"]
+        fig = plot_dos(r, system_total=True, orbitals=[])
+        ax = fig.axes[0]
+
+        assert len(self._curve_lines(ax)) == 1
+        assert isinstance(fig, mpl.figure.Figure)
+
+    def test_system_total_overlays_component_totals(self, fe_dos: Path) -> None:
+        """plot_dos(system_total=True) can show component totals and system total together."""
+        r = parse_dos(fe_dos)
+        fig = plot_dos(r, components=[1], orbitals=["total"], system_total=True)
+        ax = fig.axes[0]
+
+        assert len(self._curve_lines(ax)) == 4
         assert isinstance(fig, mpl.figure.Figure)

@@ -118,15 +118,15 @@ print(f"X up-spin components: {[comp.component_index for comp in comp_up]}")
 ### Plot DOS
 
 ```python
-from akaitools.plot import plot_dos, plot_dos_spin
+from akaitools.plot import plot_dos
 
-# Total DOS for all components, Fermi level shifted to 0
+# Component-projected DOS, Fermi level shifted to 0
 fig = plot_dos(dos, ef=0.0, orbitals=["total", "d"], energy_unit="eV")
 fig.savefig("dos.png", dpi=150)
 
-# Spin-resolved plot (spin-down reflected below zero)
-fig = plot_dos_spin(dos, component=1, orbital="d", ef=0.0)
-fig.savefig("dos_spin.png", dpi=150)
+# Component totals plus system total on the same axes
+fig = plot_dos(dos, ef=0.0, orbitals=["total"], system_total=True)
+fig.savefig("dos_overlay.png", dpi=150)
 ```
 
 ### Command-line interface

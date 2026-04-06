@@ -79,7 +79,7 @@
 
     ```python
     from akaitools import parse_dos, parse_go
-    from akaitools.plot import plot_convergence, plot_dos, plot_dos_spin
+    from akaitools.plot import plot_convergence, plot_dos
 
     scf = parse_go("calculation.out")
     dos = parse_dos("dos.out")
@@ -90,8 +90,8 @@
     # Total + d-orbital DOS, energy in eV
     plot_dos(dos, ef=0.0, orbitals=["total", "d"], energy_unit="eV").savefig("dos.png", dpi=150)
 
-    # Spin-resolved DOS (spin-down reflected below zero)
-    plot_dos_spin(dos, component=1, orbital="d", ef=0.0).savefig("dos_spin.png", dpi=150)
+    # Component totals plus system total on the same axes
+    plot_dos(dos, orbitals=["total"], system_total=True, ef=0.0).savefig("dos_overlay.png", dpi=150)
     ```
 
 === "CLI"

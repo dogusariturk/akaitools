@@ -70,8 +70,6 @@
 
 ::: akaitools.plot.plot_dos
 
-::: akaitools.plot.plot_dos_spin
-
 ::: akaitools.plot.plot_convergence
 
 ---

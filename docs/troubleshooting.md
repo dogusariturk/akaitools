@@ -119,8 +119,9 @@ uv add akaitools
 
 ### Energy axis looks wrong / DOS is cut off
 
-The `ef` parameter in `plot_dos` and `plot_dos_spin` is the **Fermi energy in
-Ry**, subtracted from the energy axis before plotting.  If you pass a value in
+The `ef` parameter in `plot_dos` is the **Fermi energy in Ry**, subtracted from
+the energy axis before plotting.  This applies to both component DOS curves and
+the optional `system_total=True` overlay. If you pass a value in
 eV by mistake, the shift will be roughly 13× too large.
 
 To find the Fermi energy from your SCF run:
