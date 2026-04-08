@@ -129,8 +129,8 @@ plot_convergence(scf, field="rms_error").savefig("convergence.png")
 The `akaitools` command provides quick summaries of output files without writing any Python. Use `--json` for machine-readable output.
 
 ```sh
-akaitools go  calculation.out         # summarize SCF output
-akaitools go  calculation.out --json  # output as JSON
+akaitools go calculation.out         # summarize SCF output
+akaitools go calculation.out --json  # output as JSON
 akaitools dos dos.out -c 1            # DOS summary for component 1
 ```
 
@@ -180,4 +180,4 @@ Each `SpectralFunction` exposes `spin`, `data` (the BSF intensity matrix), and `
 
 ## License
 
-This project is licensed under the GNU GPLv3 License. See the [LICENSE](https://github.com/dogusariturk/akaitools/blob/master/LICENSE) file for details.
+This project is licensed under the GNU GPLv3 License. See the [LICENSE](https://github.com/dogusariturk/akaitools/blob/main/LICENSE) file for details.
