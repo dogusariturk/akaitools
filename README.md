@@ -53,7 +53,7 @@ uv tool install akaitools
 Or run a one-off command without any installation using `uvx`:
 
 ```sh
-uvx akaitools go  calculation.out
+uvx akaitools go calculation.out
 uvx akaitools dos dos.out --json
 ```
 
@@ -180,4 +180,4 @@ Each `SpectralFunction` exposes `spin`, `data` (the BSF intensity matrix), and `
 
 ## License
 
-Released under the [GPL-3.0-or-later](./LICENSE) license.
+This project is licensed under the GNU GPLv3 License. See the [LICENSE](https://github.com/dogusariturk/akaitools/blob/master/LICENSE) file for details.
