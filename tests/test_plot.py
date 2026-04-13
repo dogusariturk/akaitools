@@ -16,6 +16,7 @@ from matplotlib.ticker import ScalarFormatter
 mpl.use("Agg")
 
 from akaitools import parse_dos, parse_go
+from akaitools.errors import InvalidParameterError
 from akaitools.plot import _RY_TO_EV, plot_convergence, plot_dos
 
 if TYPE_CHECKING:
@@ -75,6 +76,12 @@ class TestPlotConvergence:
         r.iterations = []
         fig = plot_convergence(r)
         assert isinstance(fig, mpl.figure.Figure)
+
+    def test_invalid_field_raises(self, fe_go: Path) -> None:
+        """plot_convergence() raises InvalidParameterError for an unknown field."""
+        r = parse_go(fe_go)
+        with pytest.raises(InvalidParameterError, match="Unknown field"):
+            plot_convergence(r, field="unknown")
 
 
 class TestPlotDOS:
@@ -206,10 +213,22 @@ class TestPlotDOS:
         assert [text.get_text() for text in legend.get_texts()] == [f"{component.label} - Total", "Total"]
 
     def test_invalid_orbital_raises(self, fe_dos: Path) -> None:
-        """plot_dos() raises ValueError for an invalid orbital name."""
+        """plot_dos() raises InvalidParameterError for an invalid orbital name."""
         r = parse_dos(fe_dos)
-        with pytest.raises(ValueError, match="Unknown orbital"):
+        with pytest.raises(InvalidParameterError, match="Unknown orbital"):
             plot_dos(r, components=[1], orbitals=["xyz"])
+
+    def test_invalid_energy_unit_raises(self, fe_dos: Path) -> None:
+        """plot_dos() raises InvalidParameterError for an unknown energy unit."""
+        r = parse_dos(fe_dos)
+        with pytest.raises(InvalidParameterError, match="Unknown energy_unit"):
+            plot_dos(r, energy_unit="J")
+
+    def test_invalid_spin_raises(self, fe_dos: Path) -> None:
+        """plot_dos() raises InvalidParameterError for an unknown spin value."""
+        r = parse_dos(fe_dos)
+        with pytest.raises(InvalidParameterError, match="Unknown spin"):
+            plot_dos(r, spin="left")
 
     def test_system_total_only_with_empty_orbitals(self, fe_dos: Path) -> None:
         """plot_dos() can show only the system total by passing orbitals=[]."""

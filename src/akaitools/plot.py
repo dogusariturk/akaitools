@@ -27,6 +27,7 @@ from akaitools._styles import (
     STYLE_RC,
     ZERO_LINE_COLOR,
 )
+from akaitools.errors import InvalidParameterError
 
 # 1 Rydberg in eV — CODATA 2018 (https://physics.nist.gov/cgi-bin/cuu/Value?rydhcev)
 _RY_TO_EV: float = 13.605693
@@ -82,15 +83,15 @@ def plot_dos(
         The populated Matplotlib figure.
     """
     if energy_unit not in ("Ry", "eV"):
-        raise ValueError(f"Unknown energy_unit {energy_unit!r}. Valid choices: ('Ry', 'eV')")
+        raise InvalidParameterError(f"Unknown energy_unit {energy_unit!r}. Valid choices: ('Ry', 'eV')")
     if spin is not None and spin not in ("up", "down"):
-        raise ValueError(f"Unknown spin {spin!r}. Valid choices: ('up', 'down')")
+        raise InvalidParameterError(f"Unknown spin {spin!r}. Valid choices: ('up', 'down')")
     if orbitals is None:
         orbitals = ["total"]
     valid_orbitals = ("s", "p", "d", "f", "total")
     invalid_orbitals = [orb for orb in orbitals if orb not in valid_orbitals]
     if invalid_orbitals:
-        raise ValueError(f"Unknown orbital(s) {invalid_orbitals!r}. Valid choices: {valid_orbitals}")
+        raise InvalidParameterError(f"Unknown orbital(s) {invalid_orbitals!r}. Valid choices: {valid_orbitals}")
 
     with plt.rc_context(STYLE_RC):
         fig, ax = plt.subplots(figsize=figsize)
@@ -178,7 +179,7 @@ def plot_convergence(
     """
     valid_fields = ("rms_error", "moment", "total_energy")
     if field not in valid_fields:
-        raise ValueError(f"Unknown field {field!r}. Valid choices: {valid_fields}")
+        raise InvalidParameterError(f"Unknown field {field!r}. Valid choices: {valid_fields}")
     iters = result.iterations
 
     with plt.rc_context(STYLE_RC):
