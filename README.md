@@ -9,7 +9,7 @@
 [![Tests](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml)
 [![Lint](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml)
 
-`akaitools` parses output files from [AkaiKKR](http://kkr.issp.u-tokyo.ac.jp/), a Korringa–Kohn–Rostoker (KKR) Green's function code for electronic structure calculations. It turns raw text output into structured Python objects ready for analysis and visualization.
+`akaitools` parses output files from [AkaiKKR](http://kkr.issp.u-tokyo.ac.jp/), a Korringa–Kohn–Rostoker (KKR) Green's function code for electronic structure calculations, and generates AkaiKKR input files. It turns raw text output into structured Python objects ready for analysis and visualization, and lets you write new input files from scratch or from any parsed result.
 
 <p>
   <a href="https://github.com/dogusariturk/akaitools/issues/new?labels=bug">Report a Bug</a> |
@@ -21,13 +21,14 @@
 
 ---
 
-**What it parses:**
+**What it does:**
 
-- SCF convergence history (energy, magnetic moment, RMS error per iteration)
-- Per-atom electronic and magnetic properties (charges, spin/orbital moments, core levels, hyperfine fields)
-- Crystal structure (Bravais type, lattice constants, vectors, atomic positions)
-- Density of States per-component, per-orbital (*s*, *p*, *d*, *f*, total), spin-resolved
-- Bloch Spectral Function (BSF) spin-resolved spectral weight on a k-path with high-symmetry labels
+- Parse SCF convergence history (energy, magnetic moment, RMS error per iteration)
+- Parse per-atom electronic and magnetic properties (charges, spin/orbital moments, core levels, hyperfine fields)
+- Parse crystal structure (Bravais type, lattice constants, vectors, atomic positions)
+- Parse Density of States per-component, per-orbital (*s*, *p*, *d*, *f*, total), spin-resolved
+- Parse Bloch Spectral Function (BSF) spin-resolved spectral weight on a k-path with high-symmetry labels
+- Generate AkaiKKR input files from scratch or from any parsed result (`InputFile`), with support for CPA alloys, multi-site structures, and SPC k-paths
 
 ---
 
@@ -134,6 +135,39 @@ akaitools go calculation.out --json  # output as JSON
 akaitools dos dos.out -c 1            # DOS summary for component 1
 ```
 
+### Input file generation
+
+Use `InputFile` to write a new AkaiKKR input file from scratch. All parameters have sensible defaults; only `mode`, `data_file`, `bravais`, `a`, `atom_types`, and `positions` are required.
+
+```python
+from akaitools import InputFile
+from akaitools.models import AtomicComponent, AtomPosition, AtomType
+
+fe = InputFile(
+    mode="go",
+    data_file="data/fe",
+    bravais="bcc",
+    a=5.27,
+    atom_types=[
+        AtomType(name="Fe", rmt=0.0, field=0.0, lmxtyp=2,
+                 components=[AtomicComponent(anclr=26.0, conc=1.0)])
+    ],
+    positions=[AtomPosition(x=0.0, y=0.0, z=0.0, atom_type="Fe")],
+)
+
+fe.write("fe.in")         # write to disk
+print(fe.to_string())     # render to string
+```
+
+Use `InputFile.from_result()` to reconstruct an input from a parsed result, optionally changing the mode or resetting muffin-tin radii:
+
+```python
+from akaitools import InputFile, parse_go
+
+scf = parse_go("calculation.out")
+InputFile.from_result(scf, mode="dos").write("dos.in")
+```
+
 ---
 
 ## Data Model
@@ -175,6 +209,20 @@ Inherits all SCF fields, and adds:
 | `spectral_down` | `SpectralFunction \| None` | Spin-down Bloch spectral function                                     |
 
 Each `SpectralFunction` exposes `spin`, `data` (the BSF intensity matrix), and `kmesh` (`KMeshInfo` with energy range, grid size, and high-symmetry k-point labels).
+
+### Input file
+
+| Parameter    | Type                 | Description                                                  |
+|--------------|----------------------|--------------------------------------------------------------|
+| `mode`       | `str`                | Calculation mode: `"go"`, `"dos"`, or `"spc"`               |
+| `data_file`  | `str`                | Data file prefix                                             |
+| `bravais`    | `str`                | Bravais lattice type (e.g. `"bcc"`, `"fcc"`, `"hexagonal"`) |
+| `a`          | `float`              | Lattice constant in bohr                                     |
+| `atom_types` | `list[AtomType]`     | Site-type definitions with CPA components                    |
+| `positions`  | `list[AtomPosition]` | Fractional atomic positions                                  |
+| `kpath`      | `KPath \| None`      | k-point path for SPC band-structure calculations             |
+
+All remaining parameters (`edelt`, `ewidth`, `reltyp`, `sdftyp`, `magtyp`, `bzqlty`, `maxitr`, `pmix`, …) have defaults matching AkaiKKR conventions. See the [input file generation guide](https://dogusariturk.github.io/akaitools/usage/input/) for the full parameter list.
 
 ---
 

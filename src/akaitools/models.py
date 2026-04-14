@@ -197,6 +197,42 @@ class CalculationResult:
 
 
 @dataclass
+class KPoint:
+    """One high-symmetry k-point on a band-structure path.
+
+    Coordinates are stored as strings to preserve fractional notation
+    (e.g. ``"1/2"``, ``"3/4"``), which AkaiKKR reads directly from the
+    input file.
+
+    Attributes:
+        x: First reciprocal-lattice coordinate (e.g. ``"0"``, ``"1/2"``).
+        y: Second reciprocal-lattice coordinate.
+        z: Third reciprocal-lattice coordinate.
+        label: Optional human-readable Brillouin-zone label (e.g. ``"Γ"``,
+            ``"H"``).  Stored for annotation purposes only — not written to
+            the AkaiKKR input file.
+    """
+
+    x: str
+    y: str
+    z: str
+    label: str | None = None
+
+
+@dataclass
+class KPath:
+    """A sequence of high-symmetry k-points for a band-structure calculation.
+
+    Attributes:
+        nkpts: Total number of k-points sampled along the full path.
+        points: Ordered list of high-symmetry k-points defining the path.
+    """
+
+    nkpts: int
+    points: list[KPoint] = field(default_factory=list)
+
+
+@dataclass
 class DOSComponent:
     """Density of states for one CPA component and spin channel.
 

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from akaitools.models import DOSResult, GOResult, SPCResult
+from akaitools.input import InputFile
+from akaitools.models import DOSResult, GOResult, KPath, KPoint, SPCResult
 from akaitools.parsers.dos import DOSParser
 from akaitools.parsers.go import GOParser
 from akaitools.parsers.spc import SPCParser
@@ -17,10 +18,13 @@ __all__ = [
     "DOSResult",
     "GOParser",
     "GOResult",
+    "InputFile",
+    "KPath",
+    "KPoint",
     "SPCParser",
     "SPCResult",
-    "parse_go",
     "parse_dos",
+    "parse_go",
     "parse_spc",
 ]
 
