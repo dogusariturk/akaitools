@@ -2,6 +2,8 @@
 
 # akaitools
 
+<img width="200" height="200" alt="akaitools-logo" src="https://github.com/user-attachments/assets/9553bd80-5bab-4722-9eff-410121e5dee2" />
+
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://spdx.org/licenses/GPL-3.0-or-later.html)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://github.com/dogusariturk/akaitools)
