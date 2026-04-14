@@ -6,6 +6,8 @@ repo_name: dogusariturk/akaitools
 
 theme:
   name: material
+  logo: img/icon.svg
+  favicon: img/icon.svg
   palette:
     - media: "(prefers-color-scheme)"
       scheme: slate
@@ -101,6 +103,7 @@ nav:
     - Plotting: usage/plotting.md
     - DataFrame export: usage/dataframe.md
     - CLI: usage/cli.md
+    - Input file generation: usage/input.md
   - API Reference: api_reference.md
   - Troubleshooting: troubleshooting.md
   - FAQ: faq.md

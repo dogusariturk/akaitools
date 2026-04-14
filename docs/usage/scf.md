@@ -49,7 +49,4 @@ for prop in scf.atomic_properties:
 ```
 
 !!! note
-    `prop.hyperfine_field` and `prop.charge_density_at_nucleus` are `None` when
-    the corresponding block is absent from the output (e.g. non-relativistic or
-    non-magnetic runs that omit the hyperfine section).  Always guard access with
-    a `None` check before reading fields like `.total`.
+    `prop.hyperfine_field` and `prop.charge_density_at_nucleus` are `None` when the corresponding block is absent from the output (e.g. non-relativistic or non-magnetic runs that omit the hyperfine section). Always guard access with a `None` check before reading fields like `.total`.

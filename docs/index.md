@@ -1,12 +1,24 @@
+<div align="center" markdown>
+
 # akaitools
+
+<img width="200" height="200" alt="akaitools-logo" src="img/icon.svg" />
 
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://spdx.org/licenses/GPL-3.0-or-later.html)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://github.com/dogusariturk/akaitools)
+
 [![Tests](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml)
 [![Lint](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml)
 
 `akaitools` parses output files from [AkaiKKR](http://kkr.issp.u-tokyo.ac.jp/), a Korringa–Kohn–Rostoker (KKR) Green's function code for electronic structure calculations. It turns raw text output into structured, fully typed Python objects without any manual text wrangling.
+
+<p>
+  <a href="https://github.com/dogusariturk/akaitools/issues/new?labels=bug">Report a Bug</a> |
+  <a href="https://github.com/dogusariturk/akaitools/issues/new?labels=enhancement">Request a Feature</a>
+</p>
+
+</div>
 
 ---
 
@@ -18,6 +30,7 @@
 - Export any result to a pandas DataFrame for downstream analysis
 - Built-in Matplotlib plotting for DOS and SCF convergence
 - Command-line interface for quick summaries and JSON export
+- Generate AkaiKKR **input files** from scratch or from any parsed result with `InputFile`
 - Fully typed: all models are standard Python `dataclass` objects
 
 ---
@@ -108,4 +121,29 @@
 
     # JSON output (pipe-friendly)
     akaitools go calculation.out --json | jq .atomic_properties
+    ```
+
+=== "Input"
+
+    ```python
+    from akaitools import InputFile, parse_go
+    from akaitools.models import AtomicComponent, AtomPosition, AtomType
+
+    # Build from scratch
+    fe = InputFile(
+        mode="go",
+        data_file="data/fe",
+        bravais="bcc",
+        a=5.27,
+        atom_types=[
+            AtomType(name="Fe", rmt=0.0, field=0.0, lmxtyp=2,
+                     components=[AtomicComponent(anclr=26.0, conc=1.0)])
+        ],
+        positions=[AtomPosition(x=0.0, y=0.0, z=0.0, atom_type="Fe")],
+    )
+    fe.write("fe.in")
+
+    # Reconstruct from a parsed result and switch to DOS mode
+    scf = parse_go("calculation.out")
+    InputFile.from_result(scf, mode="dos").write("dos.in")
     ```

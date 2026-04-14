@@ -6,8 +6,7 @@ from akaitools import parse_spc
 spc = parse_spc("calculation.spc")
 ```
 
-The `*_up.spc` and `*_dn.spc` data files are located automatically next to the log file
-(using `input_params.file` as the stem).  Override either path explicitly when needed:
+The `*_up.spc` and `*_dn.spc` data files are located automatically next to the log file (using `input_params.file` as the stem). Override either path explicitly when needed:
 
 ```python
 spc = parse_spc(
@@ -30,8 +29,7 @@ if bsf is not None:
 
 ## BSF intensity matrix
 
-`SpectralFunction.data` is a NumPy array of shape `(n_energy, n_kpoints)`.
-`None` when `n_sym_points == 0` (no k-path was computed).
+`SpectralFunction.data` is a NumPy array of shape `(n_energy, n_kpoints)`. `None` when `n_sym_points == 0` (no k-path was computed).
 
 ```python
 import numpy as np
@@ -50,8 +48,7 @@ if bsf is not None and bsf.data is not None:
 
 ## Plotting the spectral function
 
-There is no dedicated `plot_spc` helper yet, but the intensity matrix is a plain NumPy
-array so Matplotlib's `imshow` or `pcolormesh` work directly:
+There is no dedicated `plot_spc` helper yet, but the intensity matrix is a plain NumPy array so Matplotlib's `imshow` or `pcolormesh` work directly:
 
 ```python
 import matplotlib.pyplot as plt

@@ -10,6 +10,16 @@
 
 ---
 
+## Input file generation
+
+::: akaitools.input.InputFile
+
+::: akaitools.models.KPath
+
+::: akaitools.models.KPoint
+
+---
+
 ## DOS result
 
 ::: akaitools.models.DOSResult
@@ -63,6 +73,16 @@
 ::: akaitools.models.InputParams
 
 ::: akaitools.models.SystemInfo
+
+---
+
+## Errors
+
+::: akaitools.errors.ParseError
+
+::: akaitools.errors.InvalidParameterError
+
+::: akaitools.errors.InputValidationError
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## What is AkaiKKR?
 
-AkaiKKR is an all-electron, relativistic, first-principles code based on the **Korringa–Kohn–Rostoker (KKR) Green's function method**.[^1]  It is designed for metallic systems and disordered alloys treated via the **Coherent Potential Approximation (CPA)**.
+AkaiKKR is an all-electron, relativistic, first-principles code based on the **Korringa–Kohn–Rostoker (KKR) Green's function method**.[^1] It is designed for metallic systems and disordered alloys treated via the **Coherent Potential Approximation (CPA)**.
 
 Key capabilities of the underlying code:
 
@@ -14,7 +14,7 @@ Key capabilities of the underlying code:
 
 ## What akaitools does
 
-AkaiKKR writes plain-text output files that contain all computed quantities.  `akaitools` reads those files and converts them into structured Python objects, making the data immediately available for:
+AkaiKKR writes plain-text output files that contain all computed quantities. `akaitools` reads those files and converts them into structured Python objects, making the data immediately available for:
 
 - numerical analysis with NumPy / pandas
 - visualisation with Matplotlib

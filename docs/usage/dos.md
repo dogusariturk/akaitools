@@ -42,9 +42,7 @@ if comp is not None:
 ```
 
 !!! tip
-    `get_component()` returns `None` (not an error) when the requested
-    component or spin channel is absent. Always check the return value before
-    using it.
+    `get_component()` returns `None` (not an error) when the requested component or spin channel is absent. Always check the return value before using it.
 
 ## Selection by metadata
 
@@ -59,8 +57,7 @@ x_site = dos.select(type_name="X_1", spin="up")
 mixed_x = dos.select(label="XY_2:X", spin="up")
 ```
 
-Use `component_index` for exact access. Use `type_name`, `symbol`, or `label`
-when you want site-aware filtering.
+Use `component_index` for exact access. Use `type_name`, `symbol`, or `label` when you want site-aware filtering.
 
 ## f-orbital DOS
 

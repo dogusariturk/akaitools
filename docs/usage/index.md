@@ -62,4 +62,12 @@ Select a topic below to get started.
 
     [:octicons-arrow-right-24: CLI](cli.md)
 
+-   :material-file-edit: **Input file generation**
+
+    ---
+
+    Build AkaiKKR input files from scratch or reconstruct them from any parsed result for modification and re-running.
+
+    [:octicons-arrow-right-24: Input file generation](input.md)
+
 </div>
