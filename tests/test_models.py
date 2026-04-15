@@ -10,6 +10,7 @@ from akaitools.models import (
     AtomType,
     ChargeDensityAtNucleus,
     DOSComponent,
+    DOSCurve,
     DOSResult,
     HyperfineField,
     InputParams,
@@ -17,6 +18,7 @@ from akaitools.models import (
     SystemInfo,
     ValenceCharge,
 )
+from akaitools.utils import RY_TO_EV
 
 
 def test_valence_charge_no_f() -> None:
@@ -82,7 +84,20 @@ def test_dos_component_to_dataframe_columns() -> None:
     """DOSComponent.to_dataframe() returns expected column names."""
     comp = _make_dos_component()
     df = comp.to_dataframe()
-    for col in ("component_index", "type_name", "symbol", "label", "element", "energy_Ry", "s", "p", "d", "f", "total"):
+    for col in (
+        "component_index",
+        "type_name",
+        "symbol",
+        "label",
+        "element",
+        "energy_Ry",
+        "energy_eV",
+        "s",
+        "p",
+        "d",
+        "f",
+        "total",
+    ):
         assert col in df.columns
 
 
@@ -257,3 +272,72 @@ def test_dos_result_select_by_label_no_match() -> None:
     r = _make_dos_result()
     result = r.select(label="NiFe:Fe")
     assert result == []
+
+
+class TestDOSComponentEvProperties:
+    """Tests for DOSComponent eV-unit properties."""
+
+    def test_energy_ev(self) -> None:
+        """energy_ev returns energy array scaled by RY_TO_EV."""
+        comp = _make_dos_component()
+        np.testing.assert_allclose(comp.energy_ev, comp.energy * RY_TO_EV)
+
+    def test_s_ev(self) -> None:
+        """s_ev returns s DOS divided by RY_TO_EV."""
+        comp = _make_dos_component()
+        np.testing.assert_allclose(comp.s_ev, comp.s / RY_TO_EV)
+
+    def test_p_ev(self) -> None:
+        """p_ev returns p DOS divided by RY_TO_EV."""
+        comp = _make_dos_component()
+        np.testing.assert_allclose(comp.p_ev, comp.p / RY_TO_EV)
+
+    def test_d_ev(self) -> None:
+        """d_ev returns d DOS divided by RY_TO_EV."""
+        comp = _make_dos_component()
+        np.testing.assert_allclose(comp.d_ev, comp.d / RY_TO_EV)
+
+    def test_total_ev(self) -> None:
+        """total_ev returns total DOS divided by RY_TO_EV."""
+        comp = _make_dos_component()
+        np.testing.assert_allclose(comp.total_ev, comp.total / RY_TO_EV)
+
+    def test_f_ev_none_when_f_is_none(self) -> None:
+        """f_ev is None when f is not set."""
+        comp = _make_dos_component()
+        assert comp.f is None
+        assert comp.f_ev is None
+
+    def test_f_ev_converts_when_f_is_set(self) -> None:
+        """f_ev returns f DOS divided by RY_TO_EV when f is present."""
+        comp = _make_dos_component()
+        comp.f = np.ones(len(comp.energy)) * 0.2
+        assert comp.f_ev is not None
+        np.testing.assert_allclose(comp.f_ev, comp.f / RY_TO_EV)
+
+    def test_to_dataframe_energy_ev_column(self) -> None:
+        """to_dataframe() energy_eV column equals energy_Ry * RY_TO_EV."""
+        comp = _make_dos_component()
+        df = comp.to_dataframe()
+        np.testing.assert_allclose(df["energy_eV"].to_numpy(), df["energy_Ry"].to_numpy() * RY_TO_EV)
+
+
+class TestDOSCurveEvProperties:
+    """Tests for DOSCurve eV-unit properties."""
+
+    def _make_curve(self) -> DOSCurve:
+        return DOSCurve(
+            spin="up",
+            energy=np.linspace(-0.5, 0.5, 5),
+            values=np.ones(5) * 2.0,
+        )
+
+    def test_energy_ev(self) -> None:
+        """energy_ev returns energy array scaled by RY_TO_EV."""
+        curve = self._make_curve()
+        np.testing.assert_allclose(curve.energy_ev, curve.energy * RY_TO_EV)
+
+    def test_values_ev(self) -> None:
+        """values_ev returns DOS values divided by RY_TO_EV."""
+        curve = self._make_curve()
+        np.testing.assert_allclose(curve.values_ev, curve.values / RY_TO_EV)

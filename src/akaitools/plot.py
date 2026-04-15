@@ -28,23 +28,7 @@ from akaitools._styles import (
     ZERO_LINE_COLOR,
 )
 from akaitools.errors import InvalidParameterError
-
-# 1 Rydberg in eV — CODATA 2018 (https://physics.nist.gov/cgi-bin/cuu/Value?rydhcev)
-_RY_TO_EV: float = 13.605693
-
-
-def _convert_energy(energy: np.ndarray, energy_unit: str) -> np.ndarray:
-    """Convert an energy array from Ry to the requested unit."""
-    if energy_unit == "eV":
-        return energy * _RY_TO_EV
-    return energy
-
-
-def _convert_dos(values: np.ndarray, energy_unit: str) -> np.ndarray:
-    """Convert DOS from states/Ry to states/{unit} while preserving area."""
-    if energy_unit == "eV":
-        return values / _RY_TO_EV
-    return values
+from akaitools.utils import RY_TO_EV
 
 
 def _scientific_mathtext_formatter() -> ScalarFormatter:
@@ -115,37 +99,40 @@ def plot_dos(
             if getattr(c, orb, None) is not None
         }
 
+        use_ev = energy_unit == "eV"
+        ef_converted = ef * RY_TO_EV if use_ev else ef
+
         total_curves: list[tuple[np.ndarray, np.ndarray, str]] = []
         if system_total:
             for channel, curve in (("up", result.total_up), ("down", result.total_down)):
                 if spin is not None and channel != spin:
                     continue
                 if curve is not None:
-                    total_curves.append((curve.energy - ef, curve.values, channel))
+                    energy_arr = curve.energy_ev if use_ev else curve.energy
+                    values_arr = curve.values_ev if use_ev else curve.values
+                    total_curves.append((energy_arr - ef_converted, values_arr, channel))
 
         total_channels = {channel for _, _, channel in total_curves}
         has_both_spins = spin is None and component_channels.union(total_channels) == {"up", "down"}
 
         for comp in comps_to_plot:
-            energy = _convert_energy(comp.energy - ef, energy_unit)
+            energy = (comp.energy_ev if use_ev else comp.energy) - ef_converted
 
             sign = -1 if (has_both_spins and comp.spin == "down") else 1
 
             for orb in orbitals:
-                dos_arr = getattr(comp, orb, None)
+                dos_arr = getattr(comp, f"{orb}_ev" if use_ev else orb, None)
                 if dos_arr is None:
                     continue
                 color = color_map[(comp.component_index, orb)]
-                y = sign * _convert_dos(dos_arr, energy_unit)
+                y = sign * dos_arr
                 label = legend_labels.pop((comp.label, orb), "_nolegend_")
-                ax.plot(energy, y, color=color, label=label)
-                ax.fill_between(energy, y, alpha=0.12, color=color)
+                ax.plot(energy, y, color=color, lw=1.35, label=label)
+                ax.fill_between(energy, y, alpha=0.08, color=color)
 
         for i, (energy, values, channel) in enumerate(total_curves):
             sign = -1 if (has_both_spins and channel == "down") else 1
-            x = _convert_energy(energy, energy_unit)
-            y = sign * _convert_dos(values, energy_unit)
-            ax.plot(x, y, color=EF_COLOR, lw=1.0, label="Total" if i == 0 else "_nolegend_")
+            ax.plot(energy, sign * values, color=EF_COLOR, lw=0.9, label="Total" if i == 0 else "_nolegend_")
 
         if has_both_spins:
             ax.axhline(0, color=ZERO_LINE_COLOR, lw=0.8)
@@ -155,7 +142,7 @@ def plot_dos(
         ax.set_ylabel(f"DOS (states/{energy_unit}/cell)")
         handles, labels = ax.get_legend_handles_labels()
         if handles:
-            ax.legend()
+            ax.legend(frameon=False, handlelength=2.0)
         fig.tight_layout()
     return fig
 
@@ -198,7 +185,15 @@ def plot_convergence(
         }
 
         fig, ax = plt.subplots(figsize=figsize)
-        ax.plot(x, y, ".-", color=COLORS[1])
+        ax.plot(
+            x,
+            y,
+            color=COLORS[0],
+            lw=1.2,
+            marker="o",
+            markersize=2.1,
+            markevery=max(len(x) // 12, 1),
+        )
         ax.set_xlabel("Iteration")
         ax.set_ylabel(labels.get(field, field))
         ax.set_xlim(left=0)

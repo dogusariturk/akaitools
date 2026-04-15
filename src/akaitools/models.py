@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
+from akaitools.utils import RY_TO_EV
+
 
 @dataclass
 class EnergyPoint:
@@ -244,11 +246,11 @@ class DOSComponent:
             and ``type_name:symbol`` for CPA-mixed sites.
         spin: Spin channel — ``"up"`` or ``"down"``.
         energy: Real-axis energy points, shape ``(n_points,)``, in Ry.
-        s: s-orbital projected DOS, shape ``(n_points,)``.
-        p: p-orbital projected DOS.
-        d: d-orbital projected DOS.
-        total: Total local DOS (sum of all orbital channels).
-        f: f-orbital projected DOS; ``None`` when ``lmxtyp < 3``.
+        s: s-orbital projected DOS in states/Ry/cell, shape ``(n_points,)``.
+        p: p-orbital projected DOS in states/Ry/cell.
+        d: d-orbital projected DOS in states/Ry/cell.
+        total: Total local DOS in states/Ry/cell (sum of all orbital channels).
+        f: f-orbital projected DOS in states/Ry/cell; ``None`` when ``lmxtyp < 3``.
     """
 
     component_index: int
@@ -272,6 +274,61 @@ class DOSComponent:
         """
         return self.symbol
 
+    @property
+    def energy_ev(self) -> np.ndarray:
+        """Energy array in eV.
+
+        Returns:
+            Real-axis energy points converted from Ry to eV, shape ``(n_points,)``.
+        """
+        return self.energy * RY_TO_EV
+
+    @property
+    def s_ev(self) -> np.ndarray:
+        """s-orbital projected DOS in states/eV/cell.
+
+        Returns:
+            s-orbital DOS converted from states/Ry/cell to states/eV/cell.
+        """
+        return self.s / RY_TO_EV
+
+    @property
+    def p_ev(self) -> np.ndarray:
+        """p-orbital projected DOS in states/eV/cell.
+
+        Returns:
+            p-orbital DOS converted from states/Ry/cell to states/eV/cell.
+        """
+        return self.p / RY_TO_EV
+
+    @property
+    def d_ev(self) -> np.ndarray:
+        """d-orbital projected DOS in states/eV/cell.
+
+        Returns:
+            d-orbital DOS converted from states/Ry/cell to states/eV/cell.
+        """
+        return self.d / RY_TO_EV
+
+    @property
+    def total_ev(self) -> np.ndarray:
+        """Total local DOS in states/eV/cell.
+
+        Returns:
+            Total DOS converted from states/Ry/cell to states/eV/cell.
+        """
+        return self.total / RY_TO_EV
+
+    @property
+    def f_ev(self) -> np.ndarray | None:
+        """f-orbital projected DOS in states/eV/cell; ``None`` when ``lmxtyp < 3``.
+
+        Returns:
+            f-orbital DOS converted from states/Ry/cell to states/eV/cell,
+            or ``None`` if f-orbital data is absent.
+        """
+        return self.f / RY_TO_EV if self.f is not None else None
+
     def to_dataframe(self) -> pd.DataFrame:
         """Convert this component's DOS data to a pandas DataFrame.
 
@@ -287,6 +344,7 @@ class DOSComponent:
                 "label": self.label,
                 "element": self.symbol,
                 "energy_Ry": self.energy,
+                "energy_eV": self.energy_ev,
                 "s": self.s,
                 "p": self.p,
                 "d": self.d,
@@ -298,11 +356,35 @@ class DOSComponent:
 
 @dataclass
 class DOSCurve:
-    """One spin-resolved DOS-like curve."""
+    """One spin-resolved DOS-like curve.
+
+    Attributes:
+        spin: Spin channel — ``"up"`` or ``"down"``.
+        energy: Energy array in Ry.
+        values: DOS values in states/Ry/cell.
+    """
 
     spin: str
     energy: np.ndarray
     values: np.ndarray
+
+    @property
+    def energy_ev(self) -> np.ndarray:
+        """Energy array in eV.
+
+        Returns:
+            Energy points converted from Ry to eV.
+        """
+        return self.energy * RY_TO_EV
+
+    @property
+    def values_ev(self) -> np.ndarray:
+        """DOS values in states/eV/cell.
+
+        Returns:
+            DOS values converted from states/Ry/cell to states/eV/cell.
+        """
+        return self.values / RY_TO_EV
 
 
 @dataclass

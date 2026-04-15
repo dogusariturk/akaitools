@@ -17,7 +17,8 @@ mpl.use("Agg")
 
 from akaitools import parse_dos, parse_go
 from akaitools.errors import InvalidParameterError
-from akaitools.plot import _RY_TO_EV, plot_convergence, plot_dos
+from akaitools.plot import plot_convergence, plot_dos
+from akaitools.utils import RY_TO_EV
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -117,7 +118,7 @@ class TestPlotDOS:
         component = next(c for c in r.dos_components if c.component_index == 1 and c.spin == "up")
 
         assert ax.get_ylabel() == "DOS (states/eV/cell)"
-        assert ax.lines[0].get_ydata() == pytest.approx(component.total / _RY_TO_EV)
+        assert ax.lines[0].get_ydata() == pytest.approx(component.total / RY_TO_EV)
 
     def test_has_vertical_padding(self, fe_dos: Path) -> None:
         """plot_dos() leaves a small y-margin above and below the curves."""
@@ -199,7 +200,7 @@ class TestPlotDOS:
 
         assert total_up is not None
         assert ax.get_ylabel() == "DOS (states/eV/cell)"
-        assert ax.lines[0].get_ydata() == pytest.approx(total_up.values / _RY_TO_EV)
+        assert ax.lines[0].get_ydata() == pytest.approx(total_up.values / RY_TO_EV)
 
     def test_system_total_overlay_uses_distinct_legend_entry(self, fe_dos: Path) -> None:
         """plot_dos(system_total=True) adds a system-total legend entry."""
