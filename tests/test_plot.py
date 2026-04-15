@@ -51,6 +51,12 @@ class TestPlotConvergence:
         fig = plot_convergence(r, field="total_energy")
         assert fig is not None
 
+    def test_field_total_energy_ev(self, fe_go: Path) -> None:
+        """plot_convergence() accepts field='total_energy_ev'."""
+        r = parse_go(fe_go)
+        fig = plot_convergence(r, field="total_energy_ev")
+        assert fig is not None
+
     def test_field_neu(self, fe_go: Path) -> None:
         """plot_convergence() accepts field='neu'."""
         r = parse_go(fe_go)

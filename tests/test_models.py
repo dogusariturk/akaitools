@@ -12,6 +12,7 @@ from akaitools.models import (
     DOSComponent,
     DOSCurve,
     DOSResult,
+    GOIteration,
     HyperfineField,
     InputParams,
     LatticeInfo,
@@ -320,6 +321,15 @@ class TestDOSComponentEvProperties:
         comp = _make_dos_component()
         df = comp.to_dataframe()
         np.testing.assert_allclose(df["energy_eV"].to_numpy(), df["energy_Ry"].to_numpy() * RY_TO_EV)
+
+
+class TestGOIterationEvProperties:
+    """Tests for GOIteration eV-unit properties."""
+
+    def test_total_energy_ev(self) -> None:
+        """total_energy_ev returns total_energy scaled by RY_TO_EV."""
+        it = GOIteration(iteration=1, neu=0.0, moment=2.2, total_energy=-2520.6, rms_error=-4.5)
+        assert it.total_energy_ev == pytest.approx(it.total_energy * RY_TO_EV)
 
 
 class TestDOSCurveEvProperties:
