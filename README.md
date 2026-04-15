@@ -11,7 +11,7 @@
 [![Tests](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml)
 [![Lint](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml)
 
-`akaitools` parses output files from [AkaiKKR](http://kkr.issp.u-tokyo.ac.jp/), a Korringa–Kohn–Rostoker (KKR) Green's function code for electronic structure calculations, and generates AkaiKKR input files. It turns raw text output into structured Python objects ready for analysis and visualization, and lets you write new input files from scratch or from any parsed result.
+`akaitools` parses output files from [AkaiKKR](http://kkr.issp.u-tokyo.ac.jp/), a Korringa-Kohn-Rostoker (KKR) Green's function code for electronic structure calculations. It turns raw text output into structured, fully typed Python objects and can generate new AkaiKKR input files from scratch or from parsed results.
 
 <p>
   <a href="https://github.com/dogusariturk/akaitools/issues/new?labels=bug">Report a Bug</a> |
@@ -23,37 +23,39 @@
 
 ---
 
-**What it does:**
+## Key features
 
-- Parse SCF convergence history (energy, magnetic moment, RMS error per iteration)
-- Parse per-atom electronic and magnetic properties (charges, spin/orbital moments, core levels, hyperfine fields)
-- Parse crystal structure (Bravais type, lattice constants, vectors, atomic positions)
-- Parse Density of States per-component, per-orbital (*s*, *p*, *d*, *f*, total), spin-resolved
-- Parse Bloch Spectral Function (BSF) spin-resolved spectral weight on a k-path with high-symmetry labels
-- Generate AkaiKKR input files from scratch or from any parsed result (`InputFile`), with support for CPA alloys, multi-site structures, and SPC k-paths
+- Parse **SCF**, **DOS**, and **SPC/BSF** outputs with `parse_go()`, `parse_dos()`, and `parse_spc()`
+- Access spin-resolved DOS through `spin_up`, `spin_down`, `get_component()`, and `select()`
+- Read Bloch spectral function matrices with automatic spectral-data discovery and high-symmetry k-point labels
+- Work with frozen dataclass models backed by NumPy arrays, with eV conversion helpers on energy-bearing fields
+- Export DOS data to pandas with `.to_dataframe()`
+- Generate Matplotlib figures for DOS and SCF convergence with `akaitools.plot`
+- Inspect files from the terminal with `akaitools go|dos|spc`
+- Build AkaiKKR inputs programmatically with `InputFile`, including CPA alloys, multi-site structures, and SPC `KPath` / `KPoint` definitions
 
 ---
 
 ## Installation
 
 ```sh
-# Recommended using uv
+# Recommended
 uv add akaitools
 
-# Alternative using pip
+# pip
 pip install akaitools
 
-# From source
+# Latest from GitHub
 pip install git+https://github.com/dogusariturk/akaitools.git
 ```
 
-**CLI-only usage with uv tool:** install `akaitools` as a standalone tool available globally, without adding it to a project:
+For CLI-only use: install `akaitools` as a standalone tool available globally, without adding it to a project:
 
 ```sh
 uv tool install akaitools
 ```
 
-Or run a one-off command without any installation using `uvx`:
+Or run one-off commands without installing:
 
 ```sh
 uvx akaitools go calculation.out
@@ -62,7 +64,7 @@ uvx akaitools dos dos.out --json
 
 ---
 
-## Quick Start
+## Quickstart
 
 ### SCF output
 
@@ -73,12 +75,10 @@ from akaitools import parse_go
 
 scf = parse_go("calculation.out")
 
-print(f"Converged : {scf.converged}")
-print(f"Energy    : {scf.iterations[-1].total_energy:.8f} Ry")
-print(f"Moment    : {scf.iterations[-1].moment:.4f} μB")
-
-for prop in scf.atomic_properties:
-    print(f"  {prop.element:<4s}  charge={prop.total_charge:.3f}  m={prop.spin_moment:.4f} μB")
+print(f"Converged   : {scf.converged}")
+print(f"Iterations  : {len(scf.iterations)}")
+print(f"Total energy: {scf.iterations[-1].total_energy:.8f} Ry")
+print(f"Moment      : {scf.iterations[-1].moment:.4f} uB")
 ```
 
 ### DOS output
@@ -90,13 +90,15 @@ from akaitools import parse_dos
 
 dos = parse_dos("dos.out")
 
-# Exact lookup by component index and spin
-fe_up = dos.get_component(1, "up")
-print(f"Energy range : {fe_up.energy[0]:.3f} – {fe_up.energy[-1]:.3f} Ry")
-print(f"d-DOS max    : {fe_up.d.max():.4f} states/Ry/cell")
+for comp in dos.spin_up:
+    print(f"Component {comp.component_index} [{comp.label}] up: {len(comp.energy)} points")
 
-# Filter by metadata
-x_components = dos.select(symbol="X", spin="up")
+fe_up = dos.get_component(1, "up")
+print(f"Energy range: {fe_up.energy[0]:.3f} to {fe_up.energy[-1]:.3f} Ry")
+print(f"d-DOS max   : {fe_up.d.max():.4f} states/Ry/cell")
+
+x_up = dos.select(symbol="X", spin="up")
+df = dos.to_dataframe()
 ```
 
 ### SPC output
@@ -108,23 +110,28 @@ from akaitools import parse_spc
 
 spc = parse_spc("calculation.spc")
 
-if spc.spectral_up is not None:
+if spc.spectral_up is not None and spc.spectral_up.data is not None:
     bsf = spc.spectral_up
-    print(f"k-points     : {bsf.data.shape[1]}")
-    print(f"Energy points: {bsf.kmesh.n_energy}")
-    print(f"High-symmetry: {bsf.kmesh.high_symmetry_indices}")  # e.g. {1: 'G', 25: 'H'}
+    print(f"BSF shape: {bsf.data.shape}")
+    print(f"k-labels : {bsf.kmesh.high_symmetry_indices}")
 ```
+
+`parse_spc()` auto-locates `*_up.spc` and `*_dn.spc` next to the log file. Use `base_dir`, `data_up`, or `data_down` to override the discovery logic when needed.
 
 ### Plotting
 
 `akaitools.plot` provides ready-made Matplotlib figures for the most common visualizations. All functions return a `Figure` object for further customization before saving.
 
 ```python
-from akaitools.plot import plot_dos, plot_convergence
+from akaitools import parse_dos, parse_go
+from akaitools.plot import plot_convergence, plot_dos
 
-plot_dos(dos, ef=0.0, orbitals=["total", "d"]).savefig("dos.png")
-plot_dos(dos, orbitals=["total"], system_total=True).savefig("dos_overlay.png")
+scf = parse_go("calculation.out")
+dos = parse_dos("dos.out")
+
 plot_convergence(scf, field="rms_error").savefig("convergence.png")
+plot_dos(dos, orbitals=["total", "d"], energy_unit="eV").savefig("dos.png")
+plot_dos(dos, orbitals=["total"]).savefig("dos_overlay.png")
 ```
 
 ### CLI
@@ -132,17 +139,18 @@ plot_convergence(scf, field="rms_error").savefig("convergence.png")
 The `akaitools` command provides quick summaries of output files without writing any Python. Use `--json` for machine-readable output.
 
 ```sh
-akaitools go calculation.out         # summarize SCF output
-akaitools go calculation.out --json  # output as JSON
-akaitools dos dos.out -c 1            # DOS summary for component 1
+akaitools go calculation.out                          # summarize SCF output
+akaitools go calculation.out --json                   # output as JSON
+akaitools dos dos.out -c 1                            # DOS summary for component 1
+akaitools spc calculation.spc --base-dir /path/to/run # SPC summary
 ```
 
-### Input file generation
+### Input generation
 
 Use `InputFile` to write a new AkaiKKR input file from scratch. All parameters have sensible defaults; only `mode`, `data_file`, `bravais`, `a`, `atom_types`, and `positions` are required.
 
 ```python
-from akaitools import InputFile
+from akaitools import InputFile, KPath, KPoint, parse_go
 from akaitools.models import AtomicComponent, AtomPosition, AtomType
 
 fe = InputFile(
@@ -151,83 +159,34 @@ fe = InputFile(
     bravais="bcc",
     a=5.27,
     atom_types=[
-        AtomType(name="Fe", rmt=0.0, field=0.0, lmxtyp=2,
-                 components=[AtomicComponent(anclr=26.0, conc=1.0)])
+        AtomType(
+            name="Fe",
+            rmt=0.0,
+            field=0.0,
+            lmxtyp=2,
+            components=[AtomicComponent(anclr=26.0, conc=1.0)],
+        )
     ],
     positions=[AtomPosition(x=0.0, y=0.0, z=0.0, atom_type="Fe")],
 )
-
-fe.write("fe.in")         # write to disk
-print(fe.to_string())     # render to string
-```
-
-Use `InputFile.from_result()` to reconstruct an input from a parsed result, optionally changing the mode or resetting muffin-tin radii:
-
-```python
-from akaitools import InputFile, parse_go
+fe.write("fe.in")
 
 scf = parse_go("calculation.out")
 InputFile.from_result(scf, mode="dos").write("dos.in")
+
+kpath = KPath(
+    nkpts=300,
+    points=[
+        KPoint("0", "0", "0", label="G"),
+        KPoint("0", "1", "0", label="H"),
+        KPoint("1/2", "1/2", "0", label="N"),
+    ],
+)
+InputFile.from_result(scf, mode="spc", kpath=kpath).write("spc.in")
 ```
-
----
-
-## Data Model
-
-### SCF output
-
-| Attribute           | Type                     | Description                                                         |
-|---------------------|--------------------------|---------------------------------------------------------------------|
-| `converged`         | `bool`                   | Whether the SCF cycle converged                                     |
-| `iterations`        | `list[GOIteration]`      | Energy, moment, and RMS error per cycle                             |
-| `atomic_properties` | `list[AtomicProperties]` | Per-atom charge, spin/orbital moments, hyperfine field, core levels |
-| `lattice`           | `LatticeInfo`            | Bravais type, lattice constants, vectors, cell volume               |
-| `atom_types`        | `list[AtomType]`         | Muffin-tin radii and CPA composition per site                       |
-| `positions`         | `list[AtomPosition]`     | Fractional coordinates                                              |
-| `input_params`      | `InputParams`            | Functional, relativistic treatment, magnetic type                   |
-| `system_info`       | `SystemInfo`             | OS, hostname, CPU cores, elapsed time                               |
-
-### DOS output
-
-Inherits all SCF fields, and adds:
-
-| Attribute                          | Type                 | Description                                          |
-|------------------------------------|----------------------|------------------------------------------------------|
-| `dos_components`                   | `list[DOSComponent]` | *s*, *p*, *d*, *f*, total DOS per component per spin |
-| `total_up`, `total_down`           | `DOSCurve \| None`   | Spin-resolved total DOS curves                       |
-| `integrated_up`, `integrated_down` | `DOSCurve \| None`   | Spin-resolved integrated DOS curves                  |
-
-Each `DOSComponent` exposes `component_index`, `type_name`, `symbol`, `label`, `spin`, `energy`, `s`, `p`, `d`, `f`, and `total`.
-
-### SPC output
-
-Inherits all SCF fields, and adds:
-
-| Attribute       | Type                       | Description                                                           |
-|-----------------|----------------------------|-----------------------------------------------------------------------|
-| `spc_params`    | `SPCParams`                | Energy window, broadening, symmetry operations, and k-mesh dimensions |
-| `iteration`     | `GOIteration \| None`      | Single SCF iteration recorded in the SPC log                          |
-| `spectral_up`   | `SpectralFunction \| None` | Spin-up Bloch spectral function                                       |
-| `spectral_down` | `SpectralFunction \| None` | Spin-down Bloch spectral function                                     |
-
-Each `SpectralFunction` exposes `spin`, `data` (the BSF intensity matrix), and `kmesh` (`KMeshInfo` with energy range, grid size, and high-symmetry k-point labels).
-
-### Input file
-
-| Parameter    | Type                 | Description                                                  |
-|--------------|----------------------|--------------------------------------------------------------|
-| `mode`       | `str`                | Calculation mode: `"go"`, `"dos"`, or `"spc"`               |
-| `data_file`  | `str`                | Data file prefix                                             |
-| `bravais`    | `str`                | Bravais lattice type (e.g. `"bcc"`, `"fcc"`, `"hexagonal"`) |
-| `a`          | `float`              | Lattice constant in bohr                                     |
-| `atom_types` | `list[AtomType]`     | Site-type definitions with CPA components                    |
-| `positions`  | `list[AtomPosition]` | Fractional atomic positions                                  |
-| `kpath`      | `KPath \| None`      | k-point path for SPC band-structure calculations             |
-
-All remaining parameters (`edelt`, `ewidth`, `reltyp`, `sdftyp`, `magtyp`, `bzqlty`, `maxitr`, `pmix`, …) have defaults matching AkaiKKR conventions. See the [input file generation guide](https://dogusariturk.github.io/akaitools/usage/input/) for the full parameter list.
 
 ---
 
 ## License
 
-This project is licensed under the GNU GPLv3 License. See the [LICENSE](https://github.com/dogusariturk/akaitools/blob/main/LICENSE) file for details.
+This project is licensed under the GNU GPLv3 License. See [LICENSE](LICENSE).
