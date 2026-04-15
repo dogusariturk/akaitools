@@ -70,3 +70,25 @@ if comp is not None:
     else:
         print("No f-orbital DOS (lmxtyp < 3)")
 ```
+
+## eV units
+
+All energy arrays are stored in Ry internally. Use the `_ev` properties to access energy-axis and DOS-density values converted to eV and states/eV/cell without manual unit conversion:
+
+```python
+comp = dos.get_component(1, "up")
+if comp is not None:
+    # Energy axis in eV
+    print(comp.energy_ev[:3])
+
+    # Orbital DOS in states/eV/cell
+    print(f"d-DOS max: {comp.d_ev.max():.4f} states/eV/cell")
+
+    # Total DOS in eV
+    print(f"total-DOS max: {comp.total_ev.max():.4f} states/eV/cell")
+
+# System total DOS curve in eV
+if dos.total_up is not None:
+    print(dos.total_up.energy_ev[:3])
+    print(dos.total_up.values_ev[:3])
+```
