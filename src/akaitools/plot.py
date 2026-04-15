@@ -21,12 +21,7 @@ except ImportError:
     )
     raise
 
-from akaitools._styles import (
-    COLORS,
-    EF_COLOR,
-    STYLE_RC,
-    ZERO_LINE_COLOR,
-)
+from akaitools._styles import COLORS, EF_COLOR, STYLE_RC, ZERO_LINE_COLOR
 from akaitools.errors import InvalidParameterError
 from akaitools.utils import RY_TO_EV
 
@@ -158,13 +153,13 @@ def plot_convergence(
     Args:
         result: Parsed GO result.
         field: Which iteration field to plot — ``"rms_error"``,
-            ``"moment"``, or ``"total_energy"``.
+            ``"moment"``, ``"total_energy"``, or ``"neu"``.
         figsize: Matplotlib figure size ``(width, height)`` in inches.
 
     Returns:
         The populated Matplotlib figure.
     """
-    valid_fields = ("rms_error", "moment", "total_energy")
+    valid_fields = ("rms_error", "moment", "total_energy", "neu")
     if field not in valid_fields:
         raise InvalidParameterError(f"Unknown field {field!r}. Valid choices: {valid_fields}")
     iters = result.iterations
@@ -180,8 +175,9 @@ def plot_convergence(
 
         labels = {
             "rms_error": "log$_{10}$RMS Error",
-            "moment": "Total moment ($\\mu_B$)",
-            "total_energy": "Total energy (Ry)",
+            "moment": "Total Moment ($\\mu_B$)",
+            "total_energy": "Total Energy (Ry)",
+            "neu": "Charge Neutrality",
         }
 
         fig, ax = plt.subplots(figsize=figsize)

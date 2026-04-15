@@ -79,7 +79,7 @@ class GOIteration:
     """Data from one self-consistent field iteration."""
 
     iteration: int
-    neu: float  # Number of electrons (charge neutrality measure)
+    neu: float  # charge neutrality
     moment: float  # Total magnetic moment (μB)
     total_energy: float  # Total energy (Ry)
     rms_error: float  # Log10 of RMS error
