@@ -41,6 +41,6 @@ When both spin channels are present, spin-down DOS is **reflected below zero**. 
 ```python
 from akaitools.plot import plot_convergence
 
-fig = plot_convergence(scf, field="rms_error")   # or "moment", "total_energy", "neu"
+fig = plot_convergence(scf, field="rms_error")   # or "moment", "total_energy", "total_energy_ev", "neu"
 fig.savefig("convergence.png", dpi=150)
 ```

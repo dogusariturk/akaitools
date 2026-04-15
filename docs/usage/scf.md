@@ -13,7 +13,7 @@ from akaitools.plot import plot_convergence
 
 # Iterate over SCF cycles
 for it in scf.iterations[-5:]:      # last 5 iterations
-    print(f"  iter {it.iteration:3d}  E={it.total_energy:.8f} Ry  "
+    print(f"  iter {it.iteration:3d}  E={it.total_energy:.8f} Ry  ({it.total_energy_ev:.6f} eV)  "
           f"m={it.moment:.4f} μB  log10(rms)={it.rms_error:.2f}")
 
 # Plot convergence
