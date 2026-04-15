@@ -153,13 +153,13 @@ def plot_convergence(
     Args:
         result: Parsed GO result.
         field: Which iteration field to plot — ``"rms_error"``,
-            ``"moment"``, ``"total_energy"``, or ``"neu"``.
+            ``"moment"``, ``"total_energy"``, ``"total_energy_ev"``, or ``"neu"``.
         figsize: Matplotlib figure size ``(width, height)`` in inches.
 
     Returns:
         The populated Matplotlib figure.
     """
-    valid_fields = ("rms_error", "moment", "total_energy", "neu")
+    valid_fields = ("rms_error", "moment", "total_energy", "total_energy_ev", "neu")
     if field not in valid_fields:
         raise InvalidParameterError(f"Unknown field {field!r}. Valid choices: {valid_fields}")
     iters = result.iterations
@@ -177,6 +177,7 @@ def plot_convergence(
             "rms_error": "log$_{10}$RMS Error",
             "moment": "Total Moment ($\\mu_B$)",
             "total_energy": "Total Energy (Ry)",
+            "total_energy_ev": "Total Energy (eV)",
             "neu": "Charge Neutrality",
         }
 

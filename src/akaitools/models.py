@@ -84,6 +84,15 @@ class GOIteration:
     total_energy: float  # Total energy (Ry)
     rms_error: float  # Log10 of RMS error
 
+    @property
+    def total_energy_ev(self) -> float:
+        """Total energy in eV.
+
+        Returns:
+            Total energy converted from Ry to eV.
+        """
+        return self.total_energy * RY_TO_EV
+
 
 @dataclass
 class ValenceCharge:
