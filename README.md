@@ -189,4 +189,4 @@ InputFile.from_result(scf, mode="spc", kpath=kpath).write("spc.in")
 
 ## License
 
-This project is licensed under the GNU GPLv3 License. See [LICENSE](LICENSE).
+This project is licensed under the GNU GPLv3 License. See [LICENSE](https://github.com/dogusariturk/akaitools/blob/main/LICENSE).
