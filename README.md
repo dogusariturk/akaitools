@@ -1,12 +1,12 @@
 <div align="center">
 
-# akaitools
-
 <img width="200" height="200" alt="akaitools-logo" src="https://github.com/user-attachments/assets/9553bd80-5bab-4722-9eff-410121e5dee2" />
 
+# akaitools
+
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://spdx.org/licenses/GPL-3.0-or-later.html)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://github.com/dogusariturk/akaitools)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)
 
 [![Tests](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/tests.yml)
 [![Lint](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml/badge.svg)](https://github.com/dogusariturk/akaitools/actions/workflows/lint.yml)
@@ -190,3 +190,9 @@ InputFile.from_result(scf, mode="spc", kpath=kpath).write("spc.in")
 ## License
 
 This project is licensed under the GNU GPLv3 License. See [LICENSE](https://github.com/dogusariturk/akaitools/blob/main/LICENSE).
+
+---
+
+## Citation
+
+We are currently preparing a preprint for publication.
