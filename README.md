@@ -29,7 +29,7 @@
 - Access spin-resolved DOS through `spin_up`, `spin_down`, `get_component()`, and `select()`
 - Read Bloch spectral function matrices with automatic spectral-data discovery and high-symmetry k-point labels
 - Work with frozen dataclass models backed by NumPy arrays, with eV conversion helpers on energy-bearing fields
-- Export DOS data to pandas with `.to_dataframe()`
+- Export DOS and SCF iteration data to pandas with `.to_dataframe()`
 - Generate Matplotlib figures for DOS and SCF convergence with `akaitools.plot`
 - Inspect files from the terminal with `akaitools go|dos|spc`
 - Build AkaiKKR inputs programmatically with `InputFile`, including CPA alloys, multi-site structures, and SPC `KPath` / `KPoint` definitions
@@ -79,6 +79,8 @@ print(f"Converged   : {scf.converged}")
 print(f"Iterations  : {len(scf.iterations)}")
 print(f"Total energy: {scf.iterations[-1].total_energy:.8f} Ry")
 print(f"Moment      : {scf.iterations[-1].moment:.4f} uB")
+
+df = scf.to_dataframe()  # columns: neu, moment, total_energy_Ry, total_energy_eV, rms_error
 ```
 
 ### DOS output
