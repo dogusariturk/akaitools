@@ -50,7 +50,7 @@ Select a topic below to get started.
 
     ---
 
-    Convert any DOS result to a pandas DataFrame for filtering, integration, and CSV export.
+    Convert DOS and SCF results to pandas DataFrames for filtering, integration, and CSV export.
 
     [:octicons-arrow-right-24: DataFrame export](dataframe.md)
 
