@@ -403,6 +403,26 @@ class GOResult(CalculationResult):
     iterations: list[GOIteration]
     converged: bool
 
+    def to_dataframe(self) -> pd.DataFrame:
+        """Convert SCF iteration history to a pandas DataFrame.
+
+        Returns:
+            A DataFrame with one row per iteration and columns for iteration
+            number, charge neutrality, magnetic moment, total energy, and
+            RMS error.
+        """
+        if not self.iterations:
+            return pd.DataFrame(columns=["neu", "moment", "total_energy_Ry", "total_energy_eV", "rms_error"])
+        return pd.DataFrame(
+            {
+                "neu": [it.neu for it in self.iterations],
+                "moment": [it.moment for it in self.iterations],
+                "total_energy_Ry": [it.total_energy for it in self.iterations],
+                "total_energy_eV": [it.total_energy_ev for it in self.iterations],
+                "rms_error": [it.rms_error for it in self.iterations],
+            }
+        )
+
 
 @dataclass
 class SPCParams:

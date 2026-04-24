@@ -13,6 +13,7 @@ from akaitools.models import (
     DOSCurve,
     DOSResult,
     GOIteration,
+    GOResult,
     HyperfineField,
     InputParams,
     LatticeInfo,
@@ -351,3 +352,99 @@ class TestDOSCurveEvProperties:
         """values_ev returns DOS values divided by RY_TO_EV."""
         curve = self._make_curve()
         np.testing.assert_allclose(curve.values_ev, curve.values / RY_TO_EV)
+
+
+def _make_base_kwargs() -> dict:
+    return {
+        "date": "2025-01-01",
+        "time": "00:00:00",
+        "meshr": 400,
+        "mse": 5,
+        "ng": 21,
+        "mxl": 3,
+        "input_params": InputParams(
+            go="go",
+            file="f",
+            brvtyp="fcc",
+            a=6.0,
+            c_over_a=1.0,
+            b_over_a=1.0,
+            alpha=90.0,
+            beta=90.0,
+            gamma=90.0,
+            edelt=0.001,
+            ewidth=1.0,
+            reltyp="sra",
+            sdftyp="pbe",
+            magtyp="mag",
+            record="2nd",
+            outtyp="stdout",
+            bzqlty=5,
+            maxitr="100",
+            pmix=0.1,
+            mixtyp="simple",
+            ntyp=1,
+            natm=1,
+            ncmpx=2,
+        ),
+        "energy_mesh": [],
+        "lattice": LatticeInfo(
+            bravais="fcc",
+            a=6.0,
+            c_over_a=1.0,
+            b_over_a=1.0,
+            alpha=90.0,
+            beta=90.0,
+            gamma=90.0,
+            volume=100.0,
+            volume_filling=0.7,
+            primitive_vectors=((0.5, 0.5, 0.0), (0.5, 0.0, 0.5), (0.0, 0.5, 0.5)),
+            reciprocal_vectors=((1.0, 1.0, -1.0), (1.0, -1.0, 1.0), (-1.0, 1.0, 1.0)),
+        ),
+        "atom_types": [AtomType(name="Fe", rmt=0.4, field=0.0, lmxtyp=2, components=[AtomicComponent(anclr=26.0, conc=1.0)])],
+        "positions": [],
+        "core_configs": [],
+        "atomic_properties": [],
+        "system_info": SystemInfo(os="Linux", host="host", machine="x86_64", num_cores=4, elapsed_time=1.0, num_threads=4),
+    }
+
+
+def _make_go_result() -> GOResult:
+    iterations = [
+        GOIteration(iteration=1, neu=0.01, moment=2.1, total_energy=-2520.5, rms_error=-3.0),
+        GOIteration(iteration=2, neu=0.00, moment=2.2, total_energy=-2520.6, rms_error=-4.5),
+    ]
+    return GOResult(**_make_base_kwargs(), iterations=iterations, converged=True)
+
+
+class TestGOResultToDataframe:
+    """Tests for GOResult.to_dataframe()."""
+
+    def test_columns(self) -> None:
+        """to_dataframe() returns exactly the expected column names in order."""
+        df = _make_go_result().to_dataframe()
+        assert list(df.columns) == ["neu", "moment", "total_energy_Ry", "total_energy_eV", "rms_error"]
+
+    def test_row_count(self) -> None:
+        """to_dataframe() produces one row per SCF iteration."""
+        r = _make_go_result()
+        assert len(r.to_dataframe()) == len(r.iterations)
+
+    def test_empty_iterations(self) -> None:
+        """to_dataframe() on an empty iteration list returns empty DataFrame with correct columns."""
+        r = _make_go_result()
+        r.iterations = []
+        df = r.to_dataframe()
+        assert len(df) == 0
+        assert "total_energy_Ry" in df.columns
+
+    def test_energy_ev_column(self) -> None:
+        """total_energy_eV equals total_energy_Ry * RY_TO_EV."""
+        df = _make_go_result().to_dataframe()
+        np.testing.assert_allclose(df["total_energy_eV"].to_numpy(), df["total_energy_Ry"].to_numpy() * RY_TO_EV)
+
+    def test_values(self) -> None:
+        """Moments are stored correctly."""
+        r = _make_go_result()
+        df = r.to_dataframe()
+        assert df["moment"].tolist() == pytest.approx([it.moment for it in r.iterations])
