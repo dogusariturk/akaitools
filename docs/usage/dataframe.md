@@ -1,5 +1,18 @@
 # DataFrame export
 
+## SCF iteration history
+
+```python
+df = scf.to_dataframe()
+# columns: neu  moment  total_energy_Ry  total_energy_eV  rms_error
+
+# Plot total energy convergence
+df["total_energy_eV"].plot(title="Total energy convergence")
+
+# Export to CSV
+df.to_csv("convergence.csv", index=False)
+```
+
 ## Per-component DataFrame
 
 ```python

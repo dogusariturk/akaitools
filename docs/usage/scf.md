@@ -50,3 +50,16 @@ for prop in scf.atomic_properties:
 
 !!! note
     `prop.hyperfine_field` and `prop.charge_density_at_nucleus` are `None` when the corresponding block is absent from the output (e.g. non-relativistic or non-magnetic runs that omit the hyperfine section). Always guard access with a `None` check before reading fields like `.total`.
+
+## DataFrame export
+
+```python
+df = scf.to_dataframe()
+# columns: neu  moment  total_energy_Ry  total_energy_eV  rms_error
+
+# Track energy convergence
+print(df[["total_energy_Ry", "rms_error"]])
+
+# Export to CSV
+df.to_csv("convergence.csv", index=False)
+```
