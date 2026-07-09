@@ -10,7 +10,7 @@ import pandas as pd
 from akaitools.utils import RY_TO_EV
 
 
-@dataclass
+@dataclass(frozen=True)
 class EnergyPoint:
     """One point in the complex energy mesh."""
 
@@ -18,7 +18,7 @@ class EnergyPoint:
     imag: float
 
 
-@dataclass
+@dataclass(frozen=True)
 class AtomicComponent:
     """One chemical component within a mixed (CPA) site."""
 
@@ -26,7 +26,7 @@ class AtomicComponent:
     conc: float  # Concentration (0-1)
 
 
-@dataclass
+@dataclass(frozen=True)
 class AtomType:
     """One site type, potentially a CPA alloy mixture."""
 
@@ -37,7 +37,7 @@ class AtomType:
     components: list[AtomicComponent] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(frozen=True)
 class AtomPosition:
     """Fractional position of an atom in the unit cell."""
 
@@ -47,7 +47,7 @@ class AtomPosition:
     atom_type: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class LatticeInfo:
     """Bravais lattice and cell geometry."""
 
@@ -64,7 +64,7 @@ class LatticeInfo:
     reciprocal_vectors: tuple[tuple[float, float, float], ...]  # In units of 2π/a
 
 
-@dataclass
+@dataclass(frozen=True)
 class CoreConfig:
     """Electronic core configuration for one atomic species."""
 
@@ -74,7 +74,7 @@ class CoreConfig:
     down: tuple[int, ...]  # Spin-down occupation per state
 
 
-@dataclass
+@dataclass(frozen=True)
 class GOIteration:
     """Data from one self-consistent field iteration."""
 
@@ -94,7 +94,7 @@ class GOIteration:
         return self.total_energy * RY_TO_EV
 
 
-@dataclass
+@dataclass(frozen=True)
 class ValenceCharge:
     """Orbital-resolved valence charge for one spin channel."""
 
@@ -104,7 +104,7 @@ class ValenceCharge:
     f: float | None = None  # Only present when lmxtyp >= 3
 
 
-@dataclass
+@dataclass(frozen=True)
 class HyperfineField:
     """Hyperfine magnetic field at the nucleus."""
 
@@ -115,7 +115,7 @@ class HyperfineField:
     core_contributions: dict[str, float]  # {"1s": value_kG, "2s": value_kG, …}
 
 
-@dataclass
+@dataclass(frozen=True)
 class ChargeDensityAtNucleus:
     """Charge density at the nuclear site."""
 
@@ -125,7 +125,7 @@ class ChargeDensityAtNucleus:
     core_contributions: dict[str, float]  # {"1s": value, "2s": value, …}
 
 
-@dataclass
+@dataclass(frozen=True)
 class AtomicProperties:
     """Complete electronic properties for one (type, component) pair."""
 
@@ -146,7 +146,7 @@ class AtomicProperties:
     charge_density_at_nucleus: ChargeDensityAtNucleus | None
 
 
-@dataclass
+@dataclass(frozen=True)
 class InputParams:
     """Parameters from the 'data read in' header block."""
 
@@ -175,7 +175,7 @@ class InputParams:
     ncmpx: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class SystemInfo:
     """Computational environment and timing information."""
 
@@ -187,7 +187,7 @@ class SystemInfo:
     num_threads: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class CalculationResult:
     """Shared metadata parsed from an AkaiKKR output file."""
 
@@ -207,7 +207,7 @@ class CalculationResult:
     system_info: SystemInfo
 
 
-@dataclass
+@dataclass(frozen=True)
 class KPoint:
     """One high-symmetry k-point on a band-structure path.
 
@@ -230,7 +230,7 @@ class KPoint:
     label: str | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class KPath:
     """A sequence of high-symmetry k-points for a band-structure calculation.
 
@@ -243,7 +243,7 @@ class KPath:
     points: list[KPoint] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(frozen=True)
 class DOSComponent:
     """Density of states for one CPA component and spin channel.
 
@@ -363,7 +363,7 @@ class DOSComponent:
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class DOSCurve:
     """One spin-resolved DOS-like curve.
 
@@ -396,7 +396,7 @@ class DOSCurve:
         return self.values / RY_TO_EV
 
 
-@dataclass
+@dataclass(frozen=True)
 class GOResult(CalculationResult):
     """Parsed result from an AkaiKKR GO output file."""
 
@@ -424,7 +424,7 @@ class GOResult(CalculationResult):
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class SPCParams:
     """SPC-specific computational parameters from the ``***msg in spmain`` block."""
 
@@ -441,7 +441,7 @@ class SPCParams:
     nd: int  # Number of directions
 
 
-@dataclass
+@dataclass(frozen=True)
 class KMeshInfo:
     """k-mesh and energy-mesh metadata from a spectral function data file header."""
 
@@ -452,7 +452,7 @@ class KMeshInfo:
     high_symmetry_indices: dict[int, str]  # 1-based column index → Brillouin-zone label
 
 
-@dataclass
+@dataclass(frozen=True)
 class SpectralFunction:
     """Bloch spectral function for one spin channel.
 
@@ -468,7 +468,7 @@ class SpectralFunction:
     data: np.ndarray | None
 
 
-@dataclass
+@dataclass(frozen=True)
 class SPCResult(CalculationResult):
     """Parsed result from an AkaiKKR SPC output file.
 
@@ -488,7 +488,7 @@ class SPCResult(CalculationResult):
     spectral_down: SpectralFunction | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class DOSResult(CalculationResult):
     """Parsed result from an AkaiKKR DOS output file.
 
