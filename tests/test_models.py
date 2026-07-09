@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 
+from akaitools import parse_dos, parse_go, parse_spc
 from akaitools.models import (
     AtomicComponent,
     AtomType,
@@ -448,3 +452,75 @@ class TestGOResultToDataframe:
         r = _make_go_result()
         df = r.to_dataframe()
         assert df["moment"].tolist() == pytest.approx([it.moment for it in r.iterations])
+
+
+class TestCalculationResultToDictToJson:
+    """Tests for CalculationResult.to_dict() / to_json()."""
+
+    def test_go_to_dict_json_roundtrip(self, fe_go: Path) -> None:
+        """GOResult.to_json() round-trips through json.loads()."""
+        r = parse_go(fe_go)
+        text = r.to_json()
+        assert isinstance(text, str)
+        parsed = json.loads(text)
+        assert parsed["converged"] == r.converged
+
+    def test_go_to_dict_iterations(self, fe_go: Path) -> None:
+        """GOResult.to_dict() preserves the SCF iteration history."""
+        r = parse_go(fe_go)
+        d = r.to_dict()
+        assert len(d["iterations"]) == len(r.iterations)
+        assert d["iterations"][0]["moment"] == pytest.approx(r.iterations[0].moment)
+
+    def test_dos_to_dict_json_roundtrip(self, fe_dos: Path) -> None:
+        """DOSResult.to_json() round-trips through json.loads()."""
+        r = parse_dos(fe_dos)
+        text = r.to_json()
+        assert isinstance(text, str)
+        parsed = json.loads(text)
+        assert len(parsed["dos_components"]) == len(r.dos_components)
+
+    def test_dos_component_energy_becomes_plain_list(self, fe_dos: Path) -> None:
+        """DOSComponent.energy (a numpy array) is serialized as a plain list."""
+        r = parse_dos(fe_dos)
+        d = r.to_dict()
+        energy = d["dos_components"][0]["energy"]
+        assert isinstance(energy, list)
+        assert energy == pytest.approx(r.dos_components[0].energy.tolist())
+
+    def test_dos_to_json_indent_kwarg(self, fe_dos: Path) -> None:
+        """to_json() forwards keyword arguments to json.dumps()."""
+        r = parse_dos(fe_dos)
+        text = r.to_json(indent=2)
+        assert isinstance(text, str)
+        assert "\n" in text
+
+    def test_to_json_no_path_returns_string(self, fe_dos: Path) -> None:
+        """to_json() without a path returns the JSON string."""
+        r = parse_dos(fe_dos)
+        assert isinstance(r.to_json(), str)
+
+    def test_to_json_with_path_writes_file_and_returns_none(self, fe_dos: Path, tmp_path: Path) -> None:
+        """to_json(path) writes the JSON to disk and returns None."""
+        r = parse_dos(fe_dos)
+        out = tmp_path / "dos.json"
+        result = r.to_json(out, indent=2)
+        assert result is None
+        assert json.loads(out.read_text()) == r.to_dict()
+
+    def test_spc_to_dict_json_roundtrip(self, fe_spc: Path) -> None:
+        """SPCResult.to_json() round-trips through json.loads()."""
+        r = parse_spc(fe_spc)
+        text = r.to_json()
+        assert isinstance(text, str)
+        parsed = json.loads(text)
+        assert parsed["spc_params"]["nk"] == r.spc_params.nk
+
+    def test_spc_spectral_function_data_becomes_plain_list(self, fe_spc: Path) -> None:
+        """SpectralFunction.data (a numpy array) is serialized as a plain nested list."""
+        r = parse_spc(fe_spc)
+        d = r.to_dict()
+        if r.spectral_up is not None and r.spectral_up.data is not None:
+            data = d["spectral_up"]["data"]
+            assert isinstance(data, list)
+            assert isinstance(data[0], list)
