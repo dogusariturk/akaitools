@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from akaitools.utils import RY_TO_EV
+from akaitools.utils import RY_TO_EV, to_serializable
 
 
 @dataclass
@@ -205,6 +207,35 @@ class CalculationResult:
     core_configs: list[CoreConfig]
     atomic_properties: list[AtomicProperties]
     system_info: SystemInfo
+
+    def to_dict(self) -> dict:
+        """Convert this result to a JSON-serializable dictionary.
+
+        Numpy arrays embedded in fields are converted to plain lists
+        so the result can be passed to ``json.dumps()`` directly.
+
+        Returns:
+            A nested dictionary representation of this result.
+        """
+        return to_serializable(self)
+
+    def to_json(self, path: Path | str | None = None, **kwargs) -> str | None:
+        """Serialize this result to JSON.
+
+        Args:
+            path: If given, write the JSON to this file path and return ``None``.
+                If omitted, return the JSON as a string instead.
+            **kwargs: Additional keyword arguments forwarded to ``json.dumps()``.
+
+        Returns:
+            A JSON string representation of this result, or ``None`` if ``path``
+            was given.
+        """
+        text = json.dumps(self.to_dict(), **kwargs)
+        if path is None:
+            return text
+        Path(path).write_text(text, encoding="utf-8")
+        return None
 
 
 @dataclass
