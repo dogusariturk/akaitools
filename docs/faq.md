@@ -133,18 +133,17 @@ The Bloch Spectral Function intensity stored in `SpectralFunction.data` is in **
 
 ### How do I export results to JSON?
 
+Every result type (`GOResult`, `DOSResult`, `SPCResult`) has a `to_json()` method that
+handles the embedded numpy arrays for you:
+
 ```python
-import json, dataclasses, numpy as np
+dos.to_json("dos.json", indent=2)
+```
 
-def _serialise(obj):
-    if dataclasses.is_dataclass(obj):
-        return dataclasses.asdict(obj)
-    if isinstance(obj, np.ndarray):
-        return obj.tolist()
-    raise TypeError(type(obj))
+Omit `path` to get the JSON back as a string instead of writing to disk:
 
-with open("dos.json", "w") as f:
-    json.dump(dos, f, default=_serialise, indent=2)
+```python
+payload = dos.to_json(indent=2)
 ```
 
 Or use the CLI:
