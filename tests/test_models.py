@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pytest
 
@@ -241,8 +243,7 @@ def test_dos_result_to_dataframe_all_components() -> None:
 
 def test_dos_result_to_dataframe_empty() -> None:
     """to_dataframe() on an empty result returns empty DataFrame with correct columns."""
-    r = _make_dos_result()
-    r.dos_components = []
+    r = dataclasses.replace(_make_dos_result(), dos_components=[])
     df = r.to_dataframe()
     assert len(df) == 0
     assert "energy_Ry" in df.columns
@@ -312,9 +313,10 @@ class TestDOSComponentEvProperties:
 
     def test_f_ev_converts_when_f_is_set(self) -> None:
         """f_ev returns f DOS divided by RY_TO_EV when f is present."""
-        comp = _make_dos_component()
-        comp.f = np.ones(len(comp.energy)) * 0.2
+        base = _make_dos_component()
+        comp = dataclasses.replace(base, f=np.ones(len(base.energy)) * 0.2)
         assert comp.f_ev is not None
+        assert comp.f is not None
         np.testing.assert_allclose(comp.f_ev, comp.f / RY_TO_EV)
 
     def test_to_dataframe_energy_ev_column(self) -> None:
@@ -432,8 +434,7 @@ class TestGOResultToDataframe:
 
     def test_empty_iterations(self) -> None:
         """to_dataframe() on an empty iteration list returns empty DataFrame with correct columns."""
-        r = _make_go_result()
-        r.iterations = []
+        r = dataclasses.replace(_make_go_result(), iterations=[])
         df = r.to_dataframe()
         assert len(df) == 0
         assert "total_energy_Ry" in df.columns
