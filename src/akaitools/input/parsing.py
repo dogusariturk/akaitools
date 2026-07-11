@@ -273,9 +273,7 @@ def parse_input_file(cls: type[InputFile], text: str) -> InputFile:
             j = len(components)
             comp_tokens = cursor.next(f"atom_types[{name}].components[{j}]").split()
             if len(comp_tokens) != 2:
-                raise InputValidationError(
-                    f"atom_types[{name}].components[{j}]", f"expected 'anclr conc', got {comp_tokens!r}"
-                )
+                raise InputValidationError(f"atom_types[{name}].components[{j}]", f"expected 'anclr conc', got {comp_tokens!r}")
             components.append(
                 AtomicComponent(
                     anclr=_parse_float(comp_tokens[0], f"atom_types[{name}].components[{j}].anclr"),
