@@ -34,7 +34,7 @@
 - Built-in Matplotlib plotting for DOS and SCF convergence
 - Command-line interface for quick summaries and JSON export
 - Generate AkaiKKR input files from scratch or from any parsed result with `InputFile`, or parse existing ones back with `from_file()`/`from_string()`
-- Fully typed: all models are standard Python `dataclass` objects
+- Fully typed: all models are frozen, immutable Python `dataclass` objects
 
 ---
 
