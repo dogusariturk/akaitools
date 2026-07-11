@@ -1,4 +1,4 @@
-"""AkaiKKR input file generation."""
+"""The InputFile dataclass: fields, validation, and construction from a parsed result."""
 
 from __future__ import annotations
 
@@ -7,23 +7,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from akaitools.errors import InputValidationError
+from akaitools.input.formatting import format_input_file
+from akaitools.input.lattice import is_aux_or_prv
+from akaitools.input.parsing import parse_input_file
 
 if TYPE_CHECKING:
     from akaitools.models import AtomPosition, AtomType, CalculationResult, KPath
-
-_VALID_MODES: frozenset[str] = frozenset({"go", "dos", "spc"})
-_SEP = "c" + "-" * 60
-
-
-def _flt(value: float) -> str:
-    """Format a float, preserving at least one decimal place."""
-    s = f"{value:g}"
-    return s if ("." in s or "e" in s) else s + ".0"
-
-
-def _opt(value: float, default: float) -> str:
-    """Return the value as a string or ``","`` when it equals the default."""
-    return _flt(value) if value != default else ","
 
 
 @dataclass
@@ -57,16 +46,28 @@ class InputFile:
         reltyp: Relativistic approximation (``"nrl"``, ``"sra"``, ``"fra"``).
         sdftyp: Exchange-correlation functional (e.g. ``"mjwasa"``,
             ``"mjw"``, ``"ggapw"``).
-        magtyp: Magnetic treatment — ``"mag"`` or ``"nmag"``.
+        magtyp: Magnetic treatment (e.g. ``"mag"``, ``"nmag"``, ``"kick"``,
+            or a variant like ``"kick3"``) — AkaiKKR treats this as a free
+            string, not a fixed enum.
         record: Record type — ``"2nd"`` or ``"1st"``.
         outtyp: Output type — ``"update"`` or ``"quit"``.
-        bzqlty: Brillouin zone mesh quality (integer).
+        bzqlty: Brillouin zone mesh quality — an integer mesh count, or one
+            of AkaiKKR's quality letter codes (``"t"``, ``"l"``, ``"m"``,
+            ``"h"``, ``"u"``).
         maxitr: Maximum number of SCF iterations.
         pmix: Mixing parameter.
+        mixtyp: Mixing-type suffix attached directly to ``pmix`` with no
+            separator (e.g. ``"br"`` for Broyden, rendered as ``"0.02br"``).
+            Empty string means no mixing type is specified.
         title: Optional comment placed on the first line.  Auto-derived from
             ``bravais`` and the first atom-type name when empty.
         kpath: k-point path for Bloch spectral function calculations.  Must
             be ``None`` unless ``mode`` is ``"spc"``.
+        primitive_vectors: Three explicit primitive lattice vectors
+            ``(v1, v2, v3)``, each a ``(x, y, z)`` tuple in units of ``a``.
+            Required when ``bravais`` is ``"aux"`` or ``"prv"`` (AkaiKKR
+            reads these instead of ``c_over_a``/``b_over_a``/angles in that
+            case); must be ``None`` otherwise.
     """
 
     mode: str
@@ -88,11 +89,13 @@ class InputFile:
     magtyp: str = "mag"
     record: str = "2nd"
     outtyp: str = "update"
-    bzqlty: int = 8
+    bzqlty: int | str = 8
     maxitr: int = 100
     pmix: float = 0.035
+    mixtyp: str = ""
     title: str = ""
     kpath: KPath | None = None
+    primitive_vectors: tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]] | None = None
 
     def __post_init__(self) -> None:
         """Validate field consistency after construction.
@@ -100,10 +103,11 @@ class InputFile:
         Raises:
             InputValidationError: If any field violates a structural constraint.
         """
-        if self.mode not in _VALID_MODES:
+        valid_modes = frozenset({"go", "dos", "spc"})
+        if self.mode not in valid_modes:
             raise InputValidationError(
                 "mode",
-                f"must be one of {sorted(_VALID_MODES)!r}, got {self.mode!r}",
+                f"must be one of {sorted(valid_modes)!r}, got {self.mode!r}",
             )
         if not self.atom_types:
             raise InputValidationError("atom_types", "must not be empty")
@@ -137,6 +141,18 @@ class InputFile:
                 f"only valid when mode='spc', got mode={self.mode!r}",
             )
 
+        if is_aux_or_prv(self.bravais):
+            if self.primitive_vectors is None:
+                raise InputValidationError(
+                    "primitive_vectors",
+                    f"required when bravais={self.bravais!r}",
+                )
+        elif self.primitive_vectors is not None:
+            raise InputValidationError(
+                "primitive_vectors",
+                f"only valid when bravais is 'aux' or 'prv', got bravais={self.bravais!r}",
+            )
+
     @classmethod
     def from_result(
         cls,
@@ -164,14 +180,18 @@ class InputFile:
             A new ``InputFile`` ready to render or further modify.
 
         Raises:
-            InputValidationError: If the resolved mode is not a valid AkaiKKR mode.
+            InputValidationError: If the resolved mode is not a valid AkaiKKR
+                mode, or if ``result.input_params.brvtyp`` is ``"aux"``/``"prv"``
+                — reconstructing explicit primitive vectors from a parsed
+                result is not currently supported.
         """
         p = result.input_params
         resolved_mode = mode if mode is not None else p.go
-        if resolved_mode not in _VALID_MODES:
+        valid_modes = frozenset({"go", "dos", "spc"})
+        if resolved_mode not in valid_modes:
             raise InputValidationError(
                 "mode",
-                f"must be one of {sorted(_VALID_MODES)!r}, got {resolved_mode!r}",
+                f"must be one of {sorted(valid_modes)!r}, got {resolved_mode!r}",
             )
 
         atom_types = [replace(at, rmt=0.0) for at in result.atom_types] if reset_rmt else list(result.atom_types)
@@ -196,10 +216,67 @@ class InputFile:
             bzqlty=p.bzqlty,
             maxitr=int(p.maxitr) if p.maxitr.isdigit() else 100,
             pmix=p.pmix,
+            mixtyp=p.mixtyp,
             atom_types=atom_types,
             positions=list(result.positions),
             kpath=kpath,
         )
+
+    @classmethod
+    def from_string(cls, text: str) -> InputFile:
+        """Parse an AkaiKKR free-column input file into an ``InputFile``.
+
+        This is the inverse of ``to_string()``: it reads an optional title
+        comment, mode/data_file line, lattice line, energy/relativistic line,
+        outtyp/bzqlty/maxitr/pmix line, atom-type block, and position block,
+        following the same free-format conventions ``to_string()`` writes
+        (whitespace-separated tokens, ``","`` meaning "use the default" for
+        optional lattice parameters). Separator lines and comment
+        lines — any line whose first character is ``"c"``, ``"C"``, or
+        ``"#"`` — are skipped as structural landmarks only, matching
+        AkaiKKR's own comment rule. A title comment is optional: AkaiKKR
+        itself has no concept of one, so it is only captured when the very
+        first line happens to be a comment.
+
+        When ``bravais`` is ``"aux"`` or ``"prv"``, the three primitive
+        vectors are read in place of ``c/a``, ``b/a``, and the lattice
+        angles, matching AkaiKKR's own special-case handling of those
+        lattice types.
+
+        For ``mode == "spc"``, any content after the position block other than
+        a bare ``"end"`` line is parsed as a ``KPath``: the first line is
+        ``nkpts`` and the remaining lines are ``x y z`` k-point triples.
+        ``to_string()`` never writes k-point labels, so parsed ``KPoint``
+        instances always have ``label=None`` — this is an unrecoverable
+        round-trip limitation.
+
+        Args:
+            text: The full input-file text.
+
+        Returns:
+            The parsed ``InputFile``.
+
+        Raises:
+            InputValidationError: If the text is malformed — wrong token
+                counts, non-numeric values where numbers are expected, or a
+                structural constraint from ``__post_init__`` is violated.
+        """
+        return parse_input_file(cls, text)
+
+    @classmethod
+    def from_file(cls, path: Path | str) -> InputFile:
+        """Read an AkaiKKR input file from disk and parse it.
+
+        Args:
+            path: Path to the input file.
+
+        Returns:
+            The parsed ``InputFile``.
+
+        Raises:
+            InputValidationError: If the file content is malformed.
+        """
+        return cls.from_string(Path(path).read_text(encoding="utf-8"))
 
     def to_string(self) -> str:
         """Render the input file as a string in AkaiKKR free-column format.
@@ -207,69 +284,7 @@ class InputFile:
         Returns:
             The complete input file text, terminated by a newline.
         """
-        title = self.title or f"{self.bravais.upper()} {self.atom_types[0].name}"
-
-        lat_line = (
-            f"    {self.bravais:<10s} {self.a:<8g}"
-            f" {_opt(self.c_over_a, 1.0):<6s}"
-            f" {_opt(self.b_over_a, 1.0):<6s}"
-            f" {_opt(self.alpha, 90.0):<7s}"
-            f" {_opt(self.beta, 90.0):<5s}"
-            f" {_opt(self.gamma, 90.0):<7s}"
-            f" ,"
-        )
-
-        lines = [
-            f"c--- {title} ---",
-            f"    {self.mode}   {self.data_file}",
-            _SEP,
-            "c   brvtyp     a        c/a   b/a   alpha   beta   gamma",
-            lat_line,
-            _SEP,
-            "c   edelt    ewidth    reltyp   sdftyp   magtyp   record",
-            f"    {_flt(self.edelt):<9s} {_flt(self.ewidth):<9s} {self.reltyp:<9s} {self.sdftyp:<9s} {self.magtyp:<9s} {self.record}",
-            _SEP,
-            "c   outtyp    bzqlty   maxitr   pmix",
-            f"    {self.outtyp:<10s} {self.bzqlty:<8d} {self.maxitr:<8d} {self.pmix:g}",
-            _SEP,
-            "c    ntyp",
-            f"     {len(self.atom_types)}",
-            _SEP,
-            "c   type    ncmp    rmt    field   mxl  anclr   conc",
-        ]
-
-        for at in self.atom_types:
-            ncmp = len(at.components)
-            first = f"    {at.name:<8s} {ncmp:<7d} {at.rmt:<7g} {at.field:<7.1f} {at.lmxtyp}"
-            if ncmp == 1:
-                comp = at.components[0]
-                lines.append(f"{first}  {int(comp.anclr):>5d}  {round(comp.conc * 100):>5d}")
-            else:
-                lines.append(first)
-                for comp in at.components:
-                    lines.append(f"{'':>42s}{int(comp.anclr):>5d}  {round(comp.conc * 100):>5d}")
-
-        lines += [
-            _SEP,
-            "c   natm",
-            f"     {len(self.positions)}",
-            _SEP,
-            "c   atmicx(in the unit of a)     atmtyp",
-        ]
-
-        for pos in self.positions:
-            lines.append(f"     {pos.x:<10g} {pos.y:<10g} {pos.z:<10g} {pos.atom_type}")
-
-        lines.append(_SEP)
-
-        if self.mode != "spc":
-            lines.append(" end")
-        elif self.kpath is not None:
-            lines.append(f" {self.kpath.nkpts}")
-            for pt in self.kpath.points:
-                lines.append(f" {pt.x} {pt.y} {pt.z}")
-
-        return "\n".join(lines) + "\n"
+        return format_input_file(self)
 
     def write(self, path: Path | str) -> None:
         """Write the rendered input file to disk.
