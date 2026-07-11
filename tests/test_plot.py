@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from typing import TYPE_CHECKING
 
 import matplotlib as mpl
@@ -85,8 +86,7 @@ class TestPlotConvergence:
 
     def test_no_iterations_returns_figure(self, fe_go: Path) -> None:
         """plot_convergence() handles an empty iterations list gracefully."""
-        r = parse_go(fe_go)
-        r.iterations = []
+        r = dataclasses.replace(parse_go(fe_go), iterations=[])
         fig = plot_convergence(r)
         assert isinstance(fig, mpl.figure.Figure)
 
@@ -255,8 +255,11 @@ class TestPlotDOS:
     def test_system_total_handles_single_spin_channel(self, fe_dos: Path) -> None:
         """plot_dos(system_total=True) works when only one spin channel is available."""
         r = parse_dos(fe_dos)
-        r.total_down = None
-        r.dos_components = [comp for comp in r.dos_components if comp.spin == "up"]
+        r = dataclasses.replace(
+            r,
+            total_down=None,
+            dos_components=[comp for comp in r.dos_components if comp.spin == "up"],
+        )
         fig = plot_dos(r, system_total=True, orbitals=[])
         ax = fig.axes[0]
 
