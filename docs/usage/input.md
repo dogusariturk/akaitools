@@ -172,6 +172,35 @@ inp.write("fe_spc.in")
 
 ---
 
+## Parse an existing input file
+
+`InputFile.from_file()` and `InputFile.from_string()` parse a hand-written or previously rendered `.in` file back into an `InputFile`, the inverse of `to_string()`/`write()`.
+
+```python
+from akaitools import InputFile
+
+inp = InputFile.from_file("fe.in")
+inp.bzqlty = 12          # tweak a parameter
+inp.write("fe_rerun.in")
+
+# Or parse text already in memory
+inp = InputFile.from_string(open("fe.in").read())
+```
+
+!!! note
+    `to_string()` never writes `KPoint.label`, so labels cannot be recovered when parsing an SPC input with a k-path — every parsed `KPoint.label` is `None`. Coordinates round-trip exactly.
+
+`from_file()`/`from_string()` follow AkaiKKR's own free-format reading rules, not just the layout `to_string()` happens to write, so hand-written files parse too:
+
+- A leading title comment is optional — AkaiKKR itself has no concept of one.
+- `bravais="aux"` or `"prv"` is supported: the three primitive vectors are read in place of `c/a`, `b/a`, and the lattice angles, and stored on `InputFile.primitive_vectors`.
+- `bzqlty` accepts either an integer mesh count or one of AkaiKKR's quality letter codes (`"t"`, `"l"`, `"m"`, `"h"`, `"u"`).
+- `magtyp` is a free string (e.g. `"kick3"`), not limited to `"mag"`/`"nmag"`.
+- `pmix` and a directly-appended mixing-type suffix (e.g. `"0.02br"`) are split into `pmix` and `mixtyp`.
+- Atomic-position coordinates may carry a redundant direction letter (e.g. `"0.5a"`); it is stripped when parsing.
+
+---
+
 ## Render and inspect
 
 ```python
@@ -201,11 +230,12 @@ except InputValidationError as exc:
 
 Common causes:
 
-| `field`                      | Cause                                                    |
-|------------------------------|----------------------------------------------------------|
-| `"mode"`                     | Not one of `"go"`, `"dos"`, `"spc"`                      |
-| `"atom_types"`               | Empty list                                               |
-| `"positions"`                | Empty list                                               |
-| `"atom_types[X].components"` | Empty component list, or concentrations don't sum to 1.0 |
-| `"positions[N].atom_type"`   | References a type name not defined in `atom_types`       |
-| `"kpath"`                    | `kpath` is set but `mode` is not `"spc"`                 |
+| `field`                      | Cause                                                       |
+|------------------------------|-------------------------------------------------------------|
+| `"mode"`                     | Not one of `"go"`, `"dos"`, `"spc"`                         |
+| `"atom_types"`               | Empty list                                                  |
+| `"positions"`                | Empty list                                                  |
+| `"atom_types[X].components"` | Empty component list, or concentrations don't sum to 1.0    |
+| `"positions[N].atom_type"`   | References a type name not defined in `atom_types`          |
+| `"kpath"`                    | `kpath` is set but `mode` is not `"spc"`                    |
+| `"primitive_vectors"`        | Missing when `bravais` is `"aux"`/`"prv"`, or set otherwise |

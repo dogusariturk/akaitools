@@ -35,7 +35,7 @@
 - Export DOS and SCF iteration data to pandas with `.to_dataframe()`
 - Generate Matplotlib figures for DOS and SCF convergence with `akaitools.plot`
 - Inspect files from the terminal with `akaitools go|dos|spc`
-- Build AkaiKKR inputs programmatically with `InputFile`, including CPA alloys, multi-site structures, and SPC `KPath` / `KPoint` definitions
+- Build AkaiKKR inputs programmatically with `InputFile`, including CPA alloys, multi-site structures, and SPC `KPath` / `KPoint` definitions, or parse existing `.in` files back with `from_file()`/`from_string()`
 
 ---
 
