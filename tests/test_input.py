@@ -434,3 +434,244 @@ def test_write_content_matches_to_string(tmp_path: Path, fe_go: Path) -> None:
     out = tmp_path / "fe_input"
     inp.write(out)
     assert out.read_text() == inp.to_string()
+
+
+def test_roundtrip_single_component_go() -> None:
+    """A single-component GO input round-trips through to_string()/from_string()."""
+    original = _minimal_fe()
+    parsed = InputFile.from_string(original.to_string())
+    assert parsed.to_string() == original.to_string()
+
+
+def test_roundtrip_cpa_multi_component() -> None:
+    """A multi-component CPA site round-trips through to_string()/from_string()."""
+    original = InputFile(
+        mode="go",
+        data_file="data/nife",
+        bravais="fcc",
+        a=6.55,
+        atom_types=_nife_atom_types(),
+        positions=[AtomPosition(0, 0, 0, "NiFe")],
+    )
+    parsed = InputFile.from_string(original.to_string())
+    assert parsed.to_string() == original.to_string()
+    assert [c.anclr for c in parsed.atom_types[0].components] == [28.0, 26.0]
+    assert [c.conc for c in parsed.atom_types[0].components] == [0.5, 0.5]
+
+
+def test_roundtrip_dos_mode() -> None:
+    """A DOS-mode input round-trips through to_string()/from_string()."""
+    original = _minimal_fe(mode="dos")
+    parsed = InputFile.from_string(original.to_string())
+    assert parsed.to_string() == original.to_string()
+    assert parsed.mode == "dos"
+
+
+def test_roundtrip_multi_site_structure() -> None:
+    """A multi-site structure with vacancies round-trips through to_string()/from_string()."""
+    original = InputFile(
+        mode="go",
+        data_file="data/gaas",
+        bravais="fcc",
+        a=10.684,
+        reltyp="sra",
+        sdftyp="mjw",
+        bzqlty=4,
+        atom_types=[
+            AtomType("Ga", rmt=0.0, field=0.0, lmxtyp=2, components=[AtomicComponent(31.0, 1.0)]),
+            AtomType("As", rmt=0.0, field=0.0, lmxtyp=2, components=[AtomicComponent(33.0, 1.0)]),
+            AtomType("Vc1", rmt=0.0, field=0.0, lmxtyp=0, components=[AtomicComponent(0.0, 1.0)]),
+            AtomType("Vc2", rmt=0.0, field=0.0, lmxtyp=0, components=[AtomicComponent(0.0, 1.0)]),
+        ],
+        positions=[
+            AtomPosition(0.00, 0.00, 0.00, "Ga"),
+            AtomPosition(0.25, 0.25, 0.25, "As"),
+            AtomPosition(0.50, 0.50, 0.50, "Vc1"),
+            AtomPosition(0.75, 0.75, 0.75, "Vc2"),
+        ],
+    )
+    parsed = InputFile.from_string(original.to_string())
+    assert parsed.to_string() == original.to_string()
+    assert [at.name for at in parsed.atom_types] == ["Ga", "As", "Vc1", "Vc2"]
+    assert len(parsed.positions) == 4
+
+
+def test_roundtrip_spc_mode_with_kpath() -> None:
+    """An SPC input with a k-path round-trips; coordinates survive, labels become None."""
+    points = [
+        KPoint("0", "0", "0", label="Γ"),
+        KPoint("0", "1", "0", label="H"),
+        KPoint("1/2", "1/2", "0", label="N"),
+        KPoint("1/2", "1/2", "1/2", label="P"),
+    ]
+    kp = KPath(nkpts=300, points=points)
+    original = _spc_fe_with_kpath(kp)
+    parsed = InputFile.from_string(original.to_string())
+    assert parsed.to_string() == original.to_string()
+    assert parsed.kpath is not None
+    assert parsed.kpath.nkpts == 300
+    assert [(pt.x, pt.y, pt.z) for pt in parsed.kpath.points] == [(pt.x, pt.y, pt.z) for pt in points]
+    assert all(pt.label is None for pt in parsed.kpath.points)
+
+
+def test_roundtrip_spc_mode_without_kpath() -> None:
+    """An SPC input with kpath=None round-trips with kpath staying None."""
+    original = InputFile(
+        mode="spc",
+        data_file="data/fe",
+        bravais="bcc",
+        a=5.27,
+        atom_types=_fe_atom_types(),
+        positions=_fe_positions(),
+        kpath=None,
+    )
+    parsed = InputFile.from_string(original.to_string())
+    assert parsed.to_string() == original.to_string()
+    assert parsed.kpath is None
+
+
+def test_roundtrip_via_from_file(tmp_path: Path) -> None:
+    """from_file() reads a written file and reproduces the same rendered text."""
+    original = _minimal_fe()
+    out = tmp_path / "fe.in"
+    original.write(out)
+    parsed = InputFile.from_file(out)
+    assert parsed.to_string() == original.to_string()
+
+
+def test_from_string_malformed_mode_line_raises() -> None:
+    """A mode line missing the data_file token raises InputValidationError."""
+    text = _minimal_fe().to_string().replace("    go   data/fe", "    go")
+    with pytest.raises(InputValidationError) as exc_info:
+        InputFile.from_string(text)
+    assert exc_info.value.field == "mode"
+
+
+def test_from_string_non_numeric_lattice_constant_raises() -> None:
+    """A non-numeric lattice constant raises InputValidationError naming 'a'."""
+    text = _minimal_fe().to_string().replace("5.27", "notanumber")
+    with pytest.raises(InputValidationError) as exc_info:
+        InputFile.from_string(text)
+    assert exc_info.value.field == "a"
+
+
+def test_from_string_missing_component_line_raises() -> None:
+    """Truncated CPA component data raises InputValidationError."""
+    original = InputFile(
+        mode="go",
+        data_file="data/nife",
+        bravais="fcc",
+        a=6.55,
+        atom_types=_nife_atom_types(),
+        positions=[AtomPosition(0, 0, 0, "NiFe")],
+    )
+    lines = original.to_string().splitlines()
+    truncated = "\n".join(line for line in lines if "26" not in line) + "\n"
+    with pytest.raises(InputValidationError) as exc_info:
+        InputFile.from_string(truncated)
+    assert "components" in exc_info.value.field
+
+
+def test_parse_real_gaas_input_file() -> None:
+    """A hand-written AkaiKKR input fixture file parses successfully."""
+    path = Path(__file__).parent / "data" / "in" / "gaas"
+    inp = InputFile.from_file(path)
+    assert inp.mode == "go"
+    assert inp.bravais == "fcc"
+    assert inp.a == pytest.approx(10.684)
+    assert inp.reltyp == "sra"
+    assert inp.sdftyp == "mjw"
+    assert inp.bzqlty == 4
+    assert inp.pmix == pytest.approx(0.035)
+    assert [at.name for at in inp.atom_types] == ["Ga", "As", "Vc1", "Vc2"]
+    assert len(inp.positions) == 4
+    assert inp.positions[1].atom_type == "As"
+    assert inp.positions[1].x == pytest.approx(0.25)
+
+
+def test_parse_aux_lattice_input_file() -> None:
+    """An 'aux' lattice input (no title, primitive vectors, merged mixing token, direction-suffixed coordinates) parses successfully."""
+    path = Path(__file__).parent / "data" / "in" / "aux_lattice"
+    inp = InputFile.from_file(path)
+    assert inp.mode == "go"
+    assert inp.data_file == "data/synthetic"
+    assert inp.bravais == "aux"
+    assert inp.a == pytest.approx(1.0)
+    assert inp.primitive_vectors is not None
+    assert inp.primitive_vectors[0] == pytest.approx((3.0, 0.0, 0.0))
+    assert inp.primitive_vectors[1] == pytest.approx((0.0, 3.0, 0.0))
+    assert inp.primitive_vectors[2] == pytest.approx((0.0, 0.0, 4.0))
+    assert inp.edelt == pytest.approx(0.001)
+    assert inp.ewidth == pytest.approx(1.0)
+    assert inp.reltyp == "nrl"
+    assert inp.sdftyp == "vwn"
+    assert inp.magtyp == "kick"
+    assert inp.record == "2nd"
+    assert inp.bzqlty == 6
+    assert inp.maxitr == 50
+    assert inp.pmix == pytest.approx(0.03)
+    assert inp.mixtyp == "br"
+    assert [at.name for at in inp.atom_types] == ["A", "B"]
+    assert inp.atom_types[1].components[0].anclr == pytest.approx(14.0)
+    assert len(inp.positions) == 2
+    assert inp.positions[0].x == pytest.approx(0.0)
+    assert inp.positions[1].y == pytest.approx(0.5)
+    assert inp.positions[1].atom_type == "B"
+
+
+def test_roundtrip_aux_lattice_input_file() -> None:
+    """A parsed 'aux' lattice input re-parses identically after to_string()."""
+    path = Path(__file__).parent / "data" / "in" / "aux_lattice"
+    inp = InputFile.from_file(path)
+    reparsed = InputFile.from_string(inp.to_string())
+    assert reparsed.to_string() == inp.to_string()
+    assert reparsed.bravais == inp.bravais
+    assert reparsed.primitive_vectors == inp.primitive_vectors
+
+
+def test_from_string_no_title_line() -> None:
+    """A file with no leading title comment parses with an empty title."""
+    text = _minimal_fe().to_string()
+    text_without_title = "\n".join(ln for ln in text.splitlines() if not ln.startswith("c---")) + "\n"
+    inp = InputFile.from_string(text_without_title)
+    assert inp.title == ""
+    assert inp.mode == "go"
+    assert inp.bravais == "bcc"
+
+
+def test_aux_bravais_without_primitive_vectors_raises() -> None:
+    """Constructing an 'aux' InputFile without primitive_vectors raises InputValidationError."""
+    with pytest.raises(InputValidationError) as exc_info:
+        _minimal_fe(bravais="aux")
+    assert exc_info.value.field == "primitive_vectors"
+
+
+def test_non_aux_bravais_with_primitive_vectors_raises() -> None:
+    """Supplying primitive_vectors for a non-aux/prv bravais raises InputValidationError."""
+    with pytest.raises(InputValidationError) as exc_info:
+        _minimal_fe(primitive_vectors=((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)))
+    assert exc_info.value.field == "primitive_vectors"
+
+
+def test_from_string_pmix_with_mixtype_suffix() -> None:
+    """A pmix token with a mixing-type suffix (e.g. '0.02br') splits into pmix and mixtyp."""
+    text = _minimal_fe().to_string().replace("0.035", "0.02br")
+    inp = InputFile.from_string(text)
+    assert inp.pmix == pytest.approx(0.02)
+    assert inp.mixtyp == "br"
+
+
+def test_from_string_bzqlty_letter_code() -> None:
+    """A letter-code bzqlty token (e.g. 't') parses without error."""
+    text = _minimal_fe().to_string().replace("    update     8", "    update     t")
+    inp = InputFile.from_string(text)
+    assert inp.bzqlty == "t"
+
+
+def test_from_string_position_with_direction_suffix() -> None:
+    """Atomic-position coordinates carrying a redundant direction suffix (e.g. '0.5a') parse to plain floats."""
+    text = _minimal_fe().to_string().replace("0        0          0", "0a       0b         0c")
+    inp = InputFile.from_string(text)
+    assert inp.positions[0].x == pytest.approx(0.0)
+    assert inp.positions[0].y == pytest.approx(0.0)
+    assert inp.positions[0].z == pytest.approx(0.0)
