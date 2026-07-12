@@ -44,7 +44,7 @@ class GOParser:
             atomic_properties=common.atomic_properties,
             system_info=common.system_info,
             iterations=iterations,
-            converged="*** no convergence" not in "\n".join(lines[max(0, int(len(lines) * 0.8)) :]),
+            converged=not any("*** no convergence" in line for line in lines),
         )
 
 
