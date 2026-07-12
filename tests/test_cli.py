@@ -24,6 +24,12 @@ class TestGoCLI:
         assert result.exit_code == 0
         assert "yes" in result.output
 
+    def test_go_plain_output_not_converged(self, fe_noconv_go: Path) -> None:
+        """Plain text output includes 'NO' when the SCF loop never converges."""
+        result = runner.invoke(app, ["go", str(fe_noconv_go)])
+        assert result.exit_code == 0
+        assert "NO" in result.output
+
     def test_go_plain_output_lattice(self, fe_go: Path) -> None:
         """Plain text output includes the Bravais lattice type."""
         result = runner.invoke(app, ["go", str(fe_go)])
