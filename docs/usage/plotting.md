@@ -44,3 +44,26 @@ from akaitools.plotting import plot_convergence
 fig = plot_convergence(scf, field="rms_error")   # or "moment", "total_energy", "total_energy_ev", "neu"
 fig.savefig("convergence.png", dpi=150)
 ```
+
+## From the command line
+
+Both plots are also available as `akaitools plot` subcommands, so you don't need to write a script:
+
+```sh
+# DOS plot
+akaitools plot dos fe.dos \
+  --component 1 --component 2 \
+  --spin up \
+  --orbitals total,d \
+  --energy-unit eV \
+  --ef 0.0 \
+  -o dos.png
+
+# Only the system total DOS (empty --orbitals hides the component curves)
+akaitools plot dos fe.dos --orbitals "" -o dos_total.png
+
+# SCF convergence plot
+akaitools plot scf calculation.out --field total_energy_ev -o convergence.png
+```
+
+If `-o/--output` is omitted, the image is written to `<input file stem>.png` in the current directory.
