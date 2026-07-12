@@ -19,7 +19,7 @@ from akaitools.plotting import plot_convergence, plot_dos
 if TYPE_CHECKING:
     from akaitools.models import DOSResult, GOResult, SPCResult
 
-app = typer.Typer(help="akaitools — Parse AkaiKKR electronic structure output files.", no_args_is_help=True, add_completion=False)
+app = typer.Typer(help="akaitools | Parse AkaiKKR electronic structure output files.", no_args_is_help=True, add_completion=False)
 plot_app = typer.Typer(help="Generate plots from AkaiKKR output files.", no_args_is_help=True)
 app.add_typer(plot_app, name="plot")
 
@@ -181,7 +181,7 @@ def _spc_summary(result: SPCResult) -> dict:
     }
 
 
-@app.command("go", no_args_is_help=True)
+@app.command("go", no_args_is_help=True, help="Parse an AkaiKKR GO output file and print a summary.")
 def go_cmd(
     file: Annotated[Path, typer.Argument(exists=True, help="AkaiKKR GO output file.")],
     as_json: Annotated[bool, typer.Option("--json", help="Output as JSON.")] = False,
@@ -229,7 +229,7 @@ def go_cmd(
         )
 
 
-@app.command("dos", no_args_is_help=True)
+@app.command("dos", no_args_is_help=True, help="Parse an AkaiKKR DOS output file and print a summary.")
 def dos_cmd(
     file: Annotated[Path, typer.Argument(exists=True, help="AkaiKKR DOS output file.")],
     as_json: Annotated[bool, typer.Option("--json", help="Output as JSON.")] = False,
@@ -269,7 +269,7 @@ def dos_cmd(
         typer.echo(f"{c['index']:>6} {c['dos_at_fermi_total']:>12.4f} {'yes' if c['has_f_orbital'] else 'no':>10}")
 
 
-@app.command("spc", no_args_is_help=True)
+@app.command("spc", no_args_is_help=True, help="Parse an AkaiKKR SPC output file and print a summary.")
 def spc_cmd(
     file: Annotated[Path, typer.Argument(exists=True, help="AkaiKKR SPC output file.")],
     as_json: Annotated[bool, typer.Option("--json", help="Output as JSON.")] = False,
@@ -336,7 +336,7 @@ def spc_cmd(
         typer.echo(f"{p['type']:<20} {p['element']:<8} {p['z']:>5.0f} {p['total_charge']:>10.4f} {p['spin_moment_muB']:>10.4f}")
 
 
-@plot_app.command("dos", no_args_is_help=True)
+@plot_app.command("dos", no_args_is_help=True, help="Plot density of states from an AkaiKKR DOS output file.")
 def plot_dos_cmd(
     file: Annotated[Path, typer.Argument(exists=True, help="AkaiKKR DOS output file.")],
     component: Annotated[list[int] | None, typer.Option("--component", "-c", help="Component index to plot. Repeatable.")] = None,
@@ -388,7 +388,7 @@ def plot_dos_cmd(
     typer.echo(f"Saved plot to {out_path}")
 
 
-@plot_app.command("scf", no_args_is_help=True)
+@plot_app.command("scf", no_args_is_help=True, help="Plot self-consistency convergence history from an AkaiKKR GO output file.")
 def plot_scf_cmd(
     file: Annotated[Path, typer.Argument(exists=True, help="AkaiKKR GO output file.")],
     field: Annotated[
