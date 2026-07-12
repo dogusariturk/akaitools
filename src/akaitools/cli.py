@@ -6,16 +6,22 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 
+import matplotlib as mpl
 import numpy as np
 import typer
 
+mpl.use("Agg")
+
 from akaitools import parse_dos, parse_go, parse_spc
-from akaitools.errors import ParseError
+from akaitools.errors import InvalidParameterError, ParseError
+from akaitools.plotting import plot_convergence
 
 if TYPE_CHECKING:
     from akaitools.models import DOSResult, GOResult, SPCResult
 
 app = typer.Typer(help="akaitools — Parse AkaiKKR electronic structure output files.", no_args_is_help=True, add_completion=False)
+plot_app = typer.Typer(help="Generate plots from AkaiKKR output files.", no_args_is_help=True)
+app.add_typer(plot_app, name="plot")
 
 
 def _go_summary(result: GOResult) -> dict:
@@ -328,6 +334,38 @@ def spc_cmd(
     typer.echo("-" * 57)
     for p in summary["atomic_properties"]:
         typer.echo(f"{p['type']:<20} {p['element']:<8} {p['z']:>5.0f} {p['total_charge']:>10.4f} {p['spin_moment_muB']:>10.4f}")
+
+
+@plot_app.command("scf", no_args_is_help=True)
+def plot_scf_cmd(
+    file: Annotated[Path, typer.Argument(exists=True, help="AkaiKKR GO output file.")],
+    field: Annotated[
+        str,
+        typer.Option("--field", help="Iteration field to plot: rms_error, moment, total_energy, total_energy_ev, or neu."),
+    ] = "rms_error",
+    output: Annotated[
+        Path | None, typer.Option("-o", "--output", help="Output image path. Defaults to '<file stem>.png'.")
+    ] = None,
+) -> None:
+    """Plot self-consistency convergence history from an AkaiKKR GO output file.
+
+    Args:
+        file: Path to the GO output file.
+        field: Iteration field to plot.
+        output: Path to write the plot image to.
+
+    Returns:
+        None.
+    """
+    out_path = output if output is not None else Path(f"{file.stem}.png")
+    try:
+        result = parse_go(file)
+        fig = plot_convergence(result, field=field)
+    except (ParseError, InvalidParameterError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=1) from None
+    fig.savefig(out_path)
+    typer.echo(f"Saved plot to {out_path}")
 
 
 def main() -> None:
