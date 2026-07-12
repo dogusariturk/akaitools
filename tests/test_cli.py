@@ -12,6 +12,8 @@ from akaitools.cli import app
 if TYPE_CHECKING:
     from pathlib import Path
 
+    import pytest
+
 runner = CliRunner()
 
 
@@ -105,3 +107,112 @@ class TestDosCLI:
         result = runner.invoke(app, ["dos", str(fe_dos)])
         assert result.exit_code == 0
         assert "bcc" in result.output
+
+
+class TestPlotDosCLI:
+    """Tests for the 'plot dos' subcommand."""
+
+    def test_plot_dos_creates_output_file(self, fe_dos: Path, tmp_path: Path) -> None:
+        """The plot dos command writes a nonempty image file."""
+        output = tmp_path / "dos.png"
+        result = runner.invoke(app, ["plot", "dos", str(fe_dos), "-o", str(output)])
+        assert result.exit_code == 0
+        assert output.exists()
+        assert output.stat().st_size > 0
+
+    def test_plot_dos_default_output_path(self, fe_dos: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Without -o, the plot dos command writes '<file stem>.png' in the cwd."""
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, ["plot", "dos", str(fe_dos)])
+        assert result.exit_code == 0
+        expected = tmp_path / f"{fe_dos.stem}.png"
+        assert expected.exists()
+        assert expected.stat().st_size > 0
+
+    def test_plot_dos_with_options(self, fe_dos: Path, tmp_path: Path) -> None:
+        """The plot dos command accepts component, spin, orbitals, energy-unit, ef, and no-system-total."""
+        output = tmp_path / "dos.png"
+        result = runner.invoke(
+            app,
+            [
+                "plot",
+                "dos",
+                str(fe_dos),
+                "--component",
+                "1",
+                "--spin",
+                "up",
+                "--orbitals",
+                "total,d",
+                "--energy-unit",
+                "eV",
+                "--ef",
+                "0.5",
+                "--no-system-total",
+                "-o",
+                str(output),
+            ],
+        )
+        assert result.exit_code == 0
+        assert output.exists()
+        assert output.stat().st_size > 0
+
+    def test_plot_dos_invalid_spin_exits_nonzero(self, fe_dos: Path, tmp_path: Path) -> None:
+        """An invalid --spin value causes a non-zero exit code."""
+        output = tmp_path / "dos.png"
+        result = runner.invoke(app, ["plot", "dos", str(fe_dos), "--spin", "sideways", "-o", str(output)])
+        assert result.exit_code != 0
+        assert not output.exists()
+
+    def test_plot_dos_invalid_energy_unit_exits_nonzero(self, fe_dos: Path, tmp_path: Path) -> None:
+        """An invalid --energy-unit value causes a non-zero exit code."""
+        output = tmp_path / "dos.png"
+        result = runner.invoke(app, ["plot", "dos", str(fe_dos), "--energy-unit", "J", "-o", str(output)])
+        assert result.exit_code != 0
+        assert not output.exists()
+
+    def test_plot_dos_nonexistent_file_exits_nonzero(self, tmp_path: Path) -> None:
+        """A missing DOS file causes a non-zero exit code."""
+        result = runner.invoke(app, ["plot", "dos", str(tmp_path / "no_such.dos")])
+        assert result.exit_code != 0
+
+
+class TestPlotScfCLI:
+    """Tests for the 'plot scf' subcommand."""
+
+    def test_plot_scf_creates_output_file(self, fe_go: Path, tmp_path: Path) -> None:
+        """The plot scf command writes a nonempty image file."""
+        output = tmp_path / "scf.png"
+        result = runner.invoke(app, ["plot", "scf", str(fe_go), "-o", str(output)])
+        assert result.exit_code == 0
+        assert output.exists()
+        assert output.stat().st_size > 0
+
+    def test_plot_scf_default_output_path(self, fe_go: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Without -o, the plot scf command writes '<file stem>.png' in the cwd."""
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, ["plot", "scf", str(fe_go)])
+        assert result.exit_code == 0
+        expected = tmp_path / f"{fe_go.stem}.png"
+        assert expected.exists()
+        assert expected.stat().st_size > 0
+
+    def test_plot_scf_with_field(self, fe_go: Path, tmp_path: Path) -> None:
+        """The plot scf command accepts a --field override."""
+        output = tmp_path / "scf.png"
+        result = runner.invoke(app, ["plot", "scf", str(fe_go), "--field", "moment", "-o", str(output)])
+        assert result.exit_code == 0
+        assert output.exists()
+        assert output.stat().st_size > 0
+
+    def test_plot_scf_invalid_field_exits_nonzero(self, fe_go: Path, tmp_path: Path) -> None:
+        """An invalid --field value causes a non-zero exit code."""
+        output = tmp_path / "scf.png"
+        result = runner.invoke(app, ["plot", "scf", str(fe_go), "--field", "bogus", "-o", str(output)])
+        assert result.exit_code != 0
+        assert not output.exists()
+
+    def test_plot_scf_nonexistent_file_exits_nonzero(self, tmp_path: Path) -> None:
+        """A missing GO file causes a non-zero exit code."""
+        result = runner.invoke(app, ["plot", "scf", str(tmp_path / "no_such.out")])
+        assert result.exit_code != 0
