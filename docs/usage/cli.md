@@ -49,6 +49,25 @@ akaitools spc calculation.spc --base-dir /data/run01
 akaitools spc calculation.spc --data-up up.spc --data-down dn.spc
 ```
 
+## Plotting
+
+```sh
+# Plot DOS to fe.dos.png (defaults to the input file's stem + .png)
+akaitools plot dos fe.dos -o fe_dos.png
+
+# Plot only components 1 and 2, spin-up, total + d orbitals, in eV
+akaitools plot dos fe.dos --component 1 --component 2 --spin up --orbitals total,d --energy-unit eV -o fe_dos.png
+
+# Shift the energy axis by a Fermi energy and omit the system-total overlay
+akaitools plot dos fe.dos --ef 0.6423 --no-system-total -o fe_dos.png
+
+# Plot SCF convergence (rms_error by default)
+akaitools plot scf calculation.out -o scf.png
+
+# Plot a different convergence field
+akaitools plot scf calculation.out --field total_energy_ev -o scf_energy.png
+```
+
 ## Sample output
 
 ```
