@@ -1,0 +1,207 @@
+  2-Apr-2026
+    13:10:21
+    meshr   mse    ng   mxl
+      400    35    21     3
+
+
+
+   data read in
+   go=go   file=data/fe
+   brvtyp=bcc     a=  5.27000  c/a= 0.00000  b/a= 0.00000
+   alpha=  0.0  beta=  0.0  gamma=  0.0
+   edelt= 1.0E-03  ewidth=  1.000  reltyp=nrl    sdftyp=mjwasa
+   magtyp=mag     record=2nd   outtyp=update  bzqlty=8
+   maxitr=15  pmix= 0.03500  mixtyp=tchb-brydn
+   ntyp=  1  natm=  1  ncmpx=  1
+
+
+   complex energy mesh
+   1( -1.0000, 0.0000)   2( -0.9998, 0.0027)   3( -0.9990, 0.0062)
+   4( -0.9971, 0.0107)   5( -0.9933, 0.0163)   6( -0.9862, 0.0234)
+   7( -0.9738, 0.0319)   8( -0.9535, 0.0421)   9( -0.9220, 0.0536)
+  10( -0.8757, 0.0660)  11( -0.8117, 0.0782)  12( -0.7292, 0.0889)
+  13( -0.6307, 0.0965)  14( -0.5224, 0.0999)  15( -0.4130, 0.0985)
+  16( -0.3115, 0.0926)  17( -0.2245, 0.0835)  18( -0.1553, 0.0724)
+  19( -0.1037, 0.0610)  20( -0.0671, 0.0500)  21( -0.0424, 0.0403)
+  22( -0.0262, 0.0320)  23( -0.0160, 0.0251)  24( -0.0096, 0.0195)
+  25( -0.0057, 0.0151)  26( -0.0034, 0.0116)  27( -0.0020, 0.0089)
+  28( -0.0012, 0.0069)  29( -0.0007, 0.0052)  30( -0.0004, 0.0040)
+  31( -0.0002, 0.0031)  32( -0.0001, 0.0023)  33( -0.0001, 0.0018)
+  34( -0.0000, 0.0014)  35( -0.0000, 0.0010)
+
+   file to be accessed=data/fe
+   created
+
+   lattice constant
+   bravais=bcc   a=  5.27000   c/a= 1.0000   b/a= 1.0000
+   alpha=  90.00   beta=  90.00   gamma=  90.00
+   unit cell volume=    73.18159(a.u.)
+   volume filling= 100.0%
+
+   primitive translation vectors (in units of a)
+   a=( -0.50000  0.50000  0.50000)
+   b=(  0.50000 -0.50000  0.50000)
+   c=(  0.50000  0.50000 -0.50000)
+
+   reciprocal lattice vectors (in units of 2*pi/a)
+   ga=(  0.00000  1.00000  1.00000)
+   gb=(  1.00000  0.00000  1.00000)
+   gc=(  1.00000  1.00000  0.00000)
+
+   type of site
+   type=Fe        rmt= 0.49237 field=  0.000   lmxtyp=  2
+                  component= 1  anclr=  26.00  conc= 1.0000
+
+   atoms in the unit cell
+   position=   0.00000000   0.00000000   0.00000000  type=Fe
+
+ ***wrn in spmain...eof detected; data generated
+ ***msg in spmain...new ew, ez generated
+   ew=   0.19997  ez=   0.70000
+
+   preta= 0.35542  eta= 0.35542
+
+   symop   E  C4*3   C2*3  C4^3*3   C3*4    C3^2*4      C2'*6
+     g     1  1 1 1  1 1 1  1 1 1  1 1 1 1  1 1 1 1  1 1 1 1 1 1
+     u     1  1 1 1  1 1 1  1 1 1  1 1 1 1  1 1 1 1  1 1 1 1 1 1
+
+   last=  243   np=  19   ngpt= 273   nrpt= 169   nk=    145   nd=    1
+
+   atomic potential generated
+
+   itr=  1      rms error =  0.245
+   itr=  2      rms error = -0.412
+   itr=  3      rms error = -0.968
+   interval=  3     cpu time=      0.00 sec
+   nuclear charge=26.00
+
+         nl      cnf         energy
+    -----------------------------------
+         1s     2.000       -508.5203
+         2s     2.000        -59.2074
+         2p     6.000        -51.1807
+         3s     2.000         -6.8027
+         3p     6.000         -4.4563
+         3d     6.000         -0.6696
+         4s     2.000         -0.4930
+
+
+
+   record 1 will be overlaied by input and
+   record 2 will be replaced by new output.
+
+   core configuration for Z= 26
+   state  1s 2s 2p 3s 3p 3d 4s 4p 4d 5s 5p 4f 5d 6s 6p 5f 6d 7s
+    up     1  1  3  1  3  0  0  0  0  0  0  0  0  0  0  0  0  0
+   down    1  1  3  1  3  0  0  0  0  0  0  0  0  0  0  0  0  0
+
+   ***** self-consistent iteration starts *****
+      Fe
+   itr=  1 neu=    0.5000  moment=  2.0000  te=  -2522.80000000  err=  0.500
+   itr=  2 neu=    0.4500  moment=  2.1000  te=  -2522.81000000  err= -0.450
+   itr=  3 neu=    0.4000  moment=  2.0500  te=  -2522.82000000  err=  0.400
+   itr=  4 neu=    0.4200  moment=  2.1200  te=  -2522.81500000  err= -0.420
+   itr=  5 neu=    0.3900  moment=  2.0800  te=  -2522.82500000  err=  0.390
+   itr=  6 neu=    0.4100  moment=  2.1100  te=  -2522.82000000  err= -0.410
+   itr=  7 neu=    0.3950  moment=  2.0900  te=  -2522.82300000  err=  0.395
+   itr=  8 neu=    0.4050  moment=  2.1050  te=  -2522.82100000  err= -0.405
+   itr=  9 neu=    0.3980  moment=  2.0950  te=  -2522.82200000  err=  0.398
+   itr= 10 neu=    0.4020  moment=  2.1020  te=  -2522.82150000  err= -0.402
+   itr= 11 neu=    0.3990  moment=  2.0980  te=  -2522.82180000  err=  0.399
+   itr= 12 neu=    0.4010  moment=  2.1010  te=  -2522.82160000  err= -0.401
+   itr= 13 neu=    0.3995  moment=  2.0990  te=  -2522.82170000  err=  0.400
+   itr= 14 neu=    0.4005  moment=  2.1005  te=  -2522.82165000  err= -0.400
+   itr= 15 neu=    0.4000  moment=  2.1000  te=  -2522.82168000  err=  0.400
+   *** no convergence
+   interval= 15     cpu time=      0.15 sec
+   sdftyp=mjwas   reltyp=nrl     dmpc= 0.10000
+      Fe
+   itr= 15  neu  0.4000  chr,spn   8.0000000   2.1000000  intc,ints  0.0000  0.0000
+   rms err=  0.400
+   ef=   0.6079178   0.6079178  def=     6.8531608     4.0954036
+   band energy=    3.409269637   total energy=  -2522.821680000
+   magnetization=   2.1000 T
+
+
+
+
+
+
+
+                             *** type-Fe     Fe (z= 26.0) ***
+   core charge in the muffin-tin sphere =18.0000000
+   valence charge in the cell (spin up  ) =     0.32000(s)   0.38000(p)   4.30000(d)
+   valence charge in the cell (spin down) =     0.33000(s)   0.42000(p)   2.28000(d)
+   total charge=  26.00000   valence charge (up/down)=   5.00000   3.03000
+   spin moment=   2.10000  orbital moment=   0.00000
+   orbital current (up/down)=   0.00000   0.00000
+
+   core level  (spin up  )
+      -507.1000000 Ry(1s)       -57.9000000 Ry(2s)       -49.9000000 Ry(2p)
+        -5.6000000 Ry(3s)        -3.2800000 Ry(3p)
+   core level  (spin down)
+      -507.0900000 Ry(1s)       -57.8000000 Ry(2s)       -49.8000000 Ry(2p)
+        -5.4400000 Ry(3s)        -3.1000000 Ry(3p)
+
+   hyperfine field of Fe
+     -255.000 kG (core=  -220.000 kG  valence=   -35.000 kG  orbital=     0.000 kG )
+   core contribution
+      -18.000 kG(1s)     -490.000 kG(2s)      288.000 kG(3s)
+
+   charge density at the nucleus
+       11800.0000 (core=    11794.0000  valence=        6.0000 )
+   core contribution
+       10700.0000(1s)         972.0000(2s)         140.0000(3s)
+
+
+
+ ***wrn: iteration limit reached without meeting tolerance
+ ***wrn: potential mixing did not stabilize below edelt
+
+   post-run diagnostic summary (informational only, not re-parsed)
+   -----------------------------------------------------------
+   history  1  rms=  0.500
+   history  2  rms= -0.450
+   history  3  rms=  0.400
+   history  4  rms= -0.420
+   history  5  rms=  0.390
+   history  6  rms= -0.410
+   history  7  rms=  0.395
+   history  8  rms= -0.405
+   history  9  rms=  0.398
+   history 10  rms= -0.402
+   history 11  rms=  0.399
+   history 12  rms= -0.401
+   history 13  rms=  0.400
+   history 14  rms= -0.400
+   history 15  rms=  0.400
+   -----------------------------------------------------------
+
+   charge/moment stability check
+   mixing scheme=tchb-brydn  pmix= 0.03500
+   band occupation drift=   0.00013
+   total energy drift=      0.00042
+   dmix history:
+     0.03500  0.03500  0.03500  0.03500  0.03500  0.03500
+     0.03500  0.03500  0.03500  0.03500  0.03500  0.03500
+     0.03500  0.03500  0.03500
+
+   final density comparison (input vs output)
+   shell  input density   output density   delta
+     1s      2.000000        2.000012      0.000012
+     2s      2.000000        1.999981     -0.000019
+     2p      6.000000        6.000034      0.000034
+     3s      2.000000        1.999977     -0.000023
+     3p      6.000000        6.000041      0.000041
+     3d      6.000000        5.999908     -0.000092
+     4s      2.000000        2.000006      0.000006
+
+ ***wrn: run terminated at maxitr without satisfying edelt criterion
+
+
+
+ OS: Linux
+ Host: spark-b464
+ Machine: aarch64
+ numcor: 18
+ elapsed time         0.21 sec ( 18 threads)

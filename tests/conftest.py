@@ -50,6 +50,16 @@ def gaas_go() -> Path:
 
 
 @pytest.fixture
+def fe_noconv_go() -> Path:
+    """Return a synthetic non-converged Fe GO output path.
+
+    Returns:
+        The path to the fixture file.
+    """
+    return SAMPLES / "out" / "fe_noconv"
+
+
+@pytest.fixture
 def fe_dos() -> Path:
     """Return the AkaiKKR sample Fe DOS output path.
 
