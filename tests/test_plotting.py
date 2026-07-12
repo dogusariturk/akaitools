@@ -1,4 +1,4 @@
-"""Tests for akaitools.plot."""
+"""Tests for akaitools.plotting."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ mpl.use("Agg")
 
 from akaitools import parse_dos, parse_go
 from akaitools.errors import InvalidParameterError
-from akaitools.plot import plot_convergence, plot_dos
+from akaitools.plotting import plot_convergence, plot_dos
 from akaitools.utils import RY_TO_EV
 
 if TYPE_CHECKING:

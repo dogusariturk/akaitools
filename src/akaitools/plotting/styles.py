@@ -1,4 +1,4 @@
-"""Shared plot style constants for akaitools."""
+"""Shared plot style constants for akaitools.plotting."""
 
 from __future__ import annotations
 
