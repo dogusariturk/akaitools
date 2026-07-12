@@ -125,11 +125,11 @@ if spc.spectral_up is not None and spc.spectral_up.data is not None:
 
 ### Plotting
 
-`akaitools.plot` provides ready-made Matplotlib figures for the most common visualizations. All functions return a `Figure` object for further customization before saving.
+`akaitools.plotting` provides ready-made Matplotlib figures for the most common visualizations. All functions return a `Figure` object for further customization before saving.
 
 ```python
 from akaitools import parse_dos, parse_go
-from akaitools.plot import plot_convergence, plot_dos
+from akaitools.plotting import plot_convergence, plot_dos
 
 scf = parse_go("calculation.out")
 dos = parse_dos("dos.out")

@@ -118,7 +118,7 @@ print(f"X up-spin components: {[comp.component_index for comp in comp_up]}")
 ### Plot DOS
 
 ```python
-from akaitools.plot import plot_dos
+from akaitools.plotting import plot_dos
 
 # Component-projected DOS, Fermi level shifted to 0
 fig = plot_dos(dos, ef=0.0, orbitals=["total", "d"], energy_unit="eV")

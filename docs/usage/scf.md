@@ -9,7 +9,7 @@ scf = parse_go("calculation.out")
 ## Convergence history
 
 ```python
-from akaitools.plot import plot_convergence
+from akaitools.plotting import plot_convergence
 
 # Iterate over SCF cycles
 for it in scf.iterations[-5:]:      # last 5 iterations

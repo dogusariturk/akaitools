@@ -95,7 +95,7 @@
 
     ```python
     from akaitools import parse_dos, parse_go
-    from akaitools.plot import plot_convergence, plot_dos
+    from akaitools.plotting import plot_convergence, plot_dos
 
     scf = parse_go("calculation.out")
     dos = parse_dos("dos.out")

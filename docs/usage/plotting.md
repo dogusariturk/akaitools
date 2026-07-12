@@ -3,7 +3,7 @@
 ## Total and orbital-projected DOS
 
 ```python
-from akaitools.plot import plot_dos
+from akaitools.plotting import plot_dos
 
 fig = plot_dos(
     dos,
@@ -20,7 +20,7 @@ fig.savefig("dos.png", dpi=150)
 ## System Total DOS Overlay
 
 ```python
-from akaitools.plot import plot_dos
+from akaitools.plotting import plot_dos
 
 fig = plot_dos(
     dos,
@@ -39,7 +39,7 @@ When both spin channels are present, spin-down DOS is **reflected below zero**. 
 ## SCF convergence
 
 ```python
-from akaitools.plot import plot_convergence
+from akaitools.plotting import plot_convergence
 
 fig = plot_convergence(scf, field="rms_error")   # or "moment", "total_energy", "total_energy_ev", "neu"
 fig.savefig("convergence.png", dpi=150)

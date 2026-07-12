@@ -122,7 +122,7 @@ uv add akaitools
 
 ## Plotting
 
-### `ImportError` when importing `akaitools.plot`
+### `ImportError` when importing `akaitools.plotting`
 
 Matplotlib is a core dependency of akaitools. If it is missing, reinstall the package:
 
