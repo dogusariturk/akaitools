@@ -14,7 +14,7 @@ mpl.use("Agg")
 
 from akaitools import parse_dos, parse_go, parse_spc
 from akaitools.errors import InvalidParameterError, ParseError
-from akaitools.plotting import plot_convergence
+from akaitools.plotting import plot_convergence, plot_dos
 
 if TYPE_CHECKING:
     from akaitools.models import DOSResult, GOResult, SPCResult
@@ -334,6 +334,58 @@ def spc_cmd(
     typer.echo("-" * 57)
     for p in summary["atomic_properties"]:
         typer.echo(f"{p['type']:<20} {p['element']:<8} {p['z']:>5.0f} {p['total_charge']:>10.4f} {p['spin_moment_muB']:>10.4f}")
+
+
+@plot_app.command("dos", no_args_is_help=True)
+def plot_dos_cmd(
+    file: Annotated[Path, typer.Argument(exists=True, help="AkaiKKR DOS output file.")],
+    component: Annotated[list[int] | None, typer.Option("--component", "-c", help="Component index to plot. Repeatable.")] = None,
+    spin: Annotated[str | None, typer.Option("--spin", help="Spin channel to plot: 'up' or 'down'. Defaults to both.")] = None,
+    orbitals: Annotated[
+        str, typer.Option("--orbitals", help="Comma-separated orbitals to plot, any subset of s,p,d,f,total.")
+    ] = "total",
+    energy_unit: Annotated[str, typer.Option("--energy-unit", help="Energy unit for the axis: 'Ry' or 'eV'.")] = "Ry",
+    ef: Annotated[float, typer.Option("--ef", help="Fermi energy in Ry, subtracted from the energy axis.")] = 0.0,
+    no_system_total: Annotated[
+        bool, typer.Option("--no-system-total", help="Do not overlay the whole-system total DOS.")
+    ] = False,
+    output: Annotated[
+        Path | None, typer.Option("-o", "--output", help="Output image path. Defaults to '<file stem>.png'.")
+    ] = None,
+) -> None:
+    """Plot density of states from an AkaiKKR DOS output file.
+
+    Args:
+        file: Path to the DOS output file.
+        component: Component indices to plot. Defaults to all components.
+        spin: Spin channel to plot.
+        orbitals: Comma-separated orbitals to plot.
+        energy_unit: Energy unit for the plotted axis.
+        ef: Fermi energy in Ry, subtracted from the energy axis.
+        no_system_total: Whether to omit the whole-system total DOS overlay.
+        output: Path to write the plot image to.
+
+    Returns:
+        None.
+    """
+    out_path = output if output is not None else Path(f"{file.stem}.png")
+    orbital_list = [orb.strip() for orb in orbitals.split(",") if orb.strip()]
+    try:
+        result = parse_dos(file)
+        fig = plot_dos(
+            result,
+            ef=ef,
+            components=component,
+            system_total=not no_system_total,
+            spin=spin,
+            orbitals=orbital_list,
+            energy_unit=energy_unit,
+        )
+    except (ParseError, InvalidParameterError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=1) from None
+    fig.savefig(out_path)
+    typer.echo(f"Saved plot to {out_path}")
 
 
 @plot_app.command("scf", no_args_is_help=True)
