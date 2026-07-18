@@ -108,7 +108,7 @@ for prop in scf.atomic_properties:
 
 ### Why is `spectral_up` or `spectral_down` `None`?
 
-`parse_spc()` auto-discovers the `*_up.spc` / `*_dn.spc` data files next to the log file. If a data file cannot be found, the corresponding attribute is `None` rather than raising an error. Check the file paths and, if needed, pass them explicitly:
+`parse_spc()` auto-discovers the `*_up.spc` / `*_dn.spc` data files next to the log file. If a data file cannot be found, **or exists but is empty (0 bytes)**, the corresponding attribute is `None` rather than raising an error. Check the file paths and, if needed, pass them explicitly:
 
 ```python
 spc = parse_spc("calculation.spc", data_up="fe_up.spc", data_down="fe_dn.spc")
@@ -126,6 +126,22 @@ if spc.spectral_up is not None and spc.spectral_up.data is not None:
 ### What are the units of the BSF intensity?
 
 The Bloch Spectral Function intensity stored in `SpectralFunction.data` is in **states / Ry / cell** (same units as the DOS). The energy axis runs from `kmesh.energy_min` to `kmesh.energy_max` in **Ry** with `kmesh.n_energy` points.
+
+---
+
+## BSF plotting
+
+### How is the color-scale ceiling (`vmax`) chosen if I don't set one?
+
+`plot_bsf` defaults to the 99.5th percentile of the intensity data for whichever channel is being drawn, so a handful of very bright pixels don't wash out the rest of the heatmap. Pass an explicit `vmax` (or `--vmax` on the CLI) for a fixed, reproducible scale across multiple plots.
+
+### Can I plot just one spin channel?
+
+Yes — pass `spin="up"` or `spin="down"` to `plot_bsf()` (`--spin up` / `--spin down` on the CLI). Leaving it as `None` plots both channels side by side when both are present, or falls back to a single panel when only one channel has data.
+
+### What do the dashed vertical/horizontal lines in the BSF plot mean?
+
+The dashed vertical lines mark high-symmetry k-points from `KMeshInfo.high_symmetry_indices`, and the dashed horizontal line marks the Fermi energy (`E - E_F = 0`) after applying the `ef` shift.
 
 ---
 
