@@ -137,3 +137,28 @@ class TestLiSPCWithData:
     def test_spectral_down_none(self) -> None:
         """Spectral down is None — li_dn.spc is empty and no path was provided."""
         assert self.r.spectral_down is None
+
+
+class TestLiSPCWithBaseDir:
+    """Li SPC with spectral data auto-discovered via base_dir.
+
+    This is the realistic auto-discovery path (unlike TestLiSPCWithData,
+    which loads li_up.spc via an explicit path and never resolves
+    li_dn.spc at all). With base_dir set, auto-discovery finds the 0-byte
+    li_dn.spc on disk and must not treat it as a malformed file.
+    """
+
+    @pytest.fixture(autouse=True)
+    def result(self, li_spc: Path) -> None:
+        """Parse the Li SPC fixture with base_dir set so both files auto-resolve."""
+        self.r: SPCResult = parse_spc(li_spc, base_dir=SAMPLES)
+
+    def test_spectral_up_loaded(self) -> None:
+        """Spectral up data is auto-discovered under base_dir."""
+        assert self.r.spectral_up is not None
+        assert self.r.spectral_up.data is not None
+        assert self.r.spectral_up.data.shape == (200, 300)
+
+    def test_spectral_down_none_not_malformed(self) -> None:
+        """The 0-byte li_dn.spc resolves to None instead of raising ParseError."""
+        assert self.r.spectral_down is None
