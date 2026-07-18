@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from akaitools.utils import to_serializable
 
@@ -148,7 +148,7 @@ class CalculationResult:
         """
         return to_serializable(self)
 
-    def to_json(self, path: Path | str | None = None, **kwargs) -> str | None:
+    def to_json(self, path: Path | str | None = None, **kwargs: Any) -> str | None:
         """Serialize this result to JSON.
 
         Args:
