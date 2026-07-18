@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.axes
@@ -16,13 +16,12 @@ from matplotlib.ticker import ScalarFormatter
 
 mpl.use("Agg")
 
-from akaitools import parse_dos, parse_go
+from akaitools import parse_dos, parse_go, parse_spc
 from akaitools.errors import InvalidParameterError
-from akaitools.plotting import plot_convergence, plot_dos
+from akaitools.plotting import plot_bsf, plot_convergence, plot_dos
 from akaitools.utils import RY_TO_EV
 
-if TYPE_CHECKING:
-    from pathlib import Path
+TEST_DATA_DIR = Path(__file__).parent / "data"
 
 
 @pytest.fixture(autouse=True)
@@ -274,3 +273,137 @@ class TestPlotDOS:
 
         assert len(self._curve_lines(ax)) == 4
         assert isinstance(fig, mpl.figure.Figure)
+
+
+class TestPlotBSF:
+    """Tests for plot_bsf()."""
+
+    @staticmethod
+    def _heatmap_axes(fig: mpl.figure.Figure) -> list[mpl.axes.Axes]:
+        """Return axes that actually have a heatmap image (excludes colorbar axes)."""
+        return [ax for ax in fig.axes if ax.images]
+
+    def test_returns_figure(self, fe_spc: Path) -> None:
+        """plot_bsf() returns a Matplotlib Figure."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+        fig = plot_bsf(r)
+        assert isinstance(fig, mpl.figure.Figure)
+
+    def test_energy_unit_ev_converts_extent(self, fe_spc: Path) -> None:
+        """plot_bsf() scales the energy extent by RY_TO_EV when energy_unit='eV'."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+
+        fig_ry = plot_bsf(r, spin="up", energy_unit="Ry")
+        fig_ev = plot_bsf(r, spin="up", energy_unit="eV")
+
+        _, _, ymin_ry, ymax_ry = self._heatmap_axes(fig_ry)[0].images[0].get_extent()
+        _, _, ymin_ev, ymax_ev = self._heatmap_axes(fig_ev)[0].images[0].get_extent()
+
+        assert ymin_ev == pytest.approx(ymin_ry * RY_TO_EV)
+        assert ymax_ev == pytest.approx(ymax_ry * RY_TO_EV)
+
+    def test_spin_up_filter(self, fe_spc: Path) -> None:
+        """plot_bsf() accepts spin='up' and renders a single heatmap."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+        fig = plot_bsf(r, spin="up")
+        assert len(self._heatmap_axes(fig)) == 1
+
+    def test_spin_down_filter(self, fe_spc: Path) -> None:
+        """plot_bsf() accepts spin='down' and renders a single heatmap."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+        fig = plot_bsf(r, spin="down")
+        assert len(self._heatmap_axes(fig)) == 1
+
+    def test_both_spins_returns_two_subplots(self, fe_spc: Path) -> None:
+        """plot_bsf() with spin=None renders both channels as titled subplots."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+        fig = plot_bsf(r)
+        heatmap_axes = self._heatmap_axes(fig)
+
+        assert len(heatmap_axes) == 2
+        assert {ax.get_title() for ax in heatmap_axes} == {"Spin up", "Spin down"}
+
+    def test_both_spins_only_right_colorbar_is_labeled(self, fe_spc: Path) -> None:
+        """plot_bsf() with two subplots labels only the right-hand colorbar."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+        fig = plot_bsf(r)
+        heatmap_axes = self._heatmap_axes(fig)
+        cbar_axes = sorted((ax for ax in fig.axes if ax not in heatmap_axes), key=lambda ax: ax.get_position().x0)
+
+        assert len(cbar_axes) == 2
+        assert cbar_axes[0].get_ylabel() == ""
+        assert cbar_axes[1].get_ylabel() == "BSF intensity"
+
+    def test_invalid_spin_raises(self, fe_spc: Path) -> None:
+        """plot_bsf() raises InvalidParameterError for an unknown spin value."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+        with pytest.raises(InvalidParameterError, match="Unknown spin"):
+            plot_bsf(r, spin="left")
+
+    def test_invalid_energy_unit_raises(self, fe_spc: Path) -> None:
+        """plot_bsf() raises InvalidParameterError for an unknown energy unit."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+        with pytest.raises(InvalidParameterError, match="Unknown energy_unit"):
+            plot_bsf(r, energy_unit="J")
+
+    def test_missing_data_shows_placeholder(self, fe_spc: Path) -> None:
+        """plot_bsf() renders a placeholder instead of raising when data is None."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+        assert r.spectral_up is not None
+        r = dataclasses.replace(r, spectral_up=dataclasses.replace(r.spectral_up, data=None))
+
+        fig = plot_bsf(r)
+        heatmap_axes = self._heatmap_axes(fig)
+
+        assert isinstance(fig, mpl.figure.Figure)
+        assert len(heatmap_axes) == 1
+
+    def test_no_spectral_data_at_all(self, li_spc: Path) -> None:
+        """plot_bsf() renders a placeholder when neither channel has spectral data."""
+        r = parse_spc(li_spc)
+        assert r.spectral_up is None
+        assert r.spectral_down is None
+
+        fig = plot_bsf(r)
+
+        assert isinstance(fig, mpl.figure.Figure)
+        assert self._heatmap_axes(fig) == []
+
+    def test_non_spin_polarized_renders_single_untitled_heatmap(self, li_spc: Path) -> None:
+        """plot_bsf() on a non-magnetic result (only spectral_up present) draws one plain heatmap."""
+        r = parse_spc(li_spc, data_up=TEST_DATA_DIR / "data" / "li_up.spc")
+        assert r.spectral_up is not None
+        assert r.spectral_down is None
+
+        fig = plot_bsf(r)
+        heatmap_axes = self._heatmap_axes(fig)
+
+        assert len(heatmap_axes) == 1
+        assert heatmap_axes[0].get_title() == ""
+
+    def test_non_spin_polarized_via_base_dir_auto_discovery(self, li_spc: Path) -> None:
+        """plot_bsf() works when base_dir auto-discovers a 0-byte down-channel file."""
+        r = parse_spc(li_spc, base_dir=TEST_DATA_DIR)
+        assert r.spectral_up is not None
+        assert r.spectral_down is None
+
+        fig = plot_bsf(r)
+        heatmap_axes = self._heatmap_axes(fig)
+
+        assert len(heatmap_axes) == 1
+
+    def test_single_channel_uses_narrower_default_figsize(self, fe_spc: Path) -> None:
+        """A single rendered channel is not as wide as the two-channel layout."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+
+        single_width, _ = plot_bsf(r, spin="up").get_size_inches()
+        both_width, _ = plot_bsf(r).get_size_inches()
+
+        assert single_width == pytest.approx(both_width / 2)
+
+    def test_explicit_figsize_is_honored_regardless_of_channel_count(self, fe_spc: Path) -> None:
+        """An explicit figsize is used as-is for both single- and dual-channel layouts."""
+        r = parse_spc(fe_spc, base_dir=TEST_DATA_DIR)
+
+        assert plot_bsf(r, spin="up", figsize=(9.0, 5.0)).get_size_inches() == pytest.approx((9.0, 5.0))
+        assert plot_bsf(r, figsize=(9.0, 5.0)).get_size_inches() == pytest.approx((9.0, 5.0))
