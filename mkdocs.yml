@@ -107,6 +107,15 @@ nav:
     - DataFrame export: usage/dataframe.md
     - CLI: usage/cli.md
     - Input file generation: usage/input.md
-  - API Reference: api_reference.md
+  - API Reference:
+    - api/index.md
+    - Parsing: api/parsing.md
+    - DOS result: api/dos.md
+    - SCF result: api/scf.md
+    - SPC result: api/spc.md
+    - Shared data models: api/models.md
+    - Plotting: api/plotting.md
+    - Input file generation: api/input.md
+    - Errors: api/errors.md
   - Troubleshooting: troubleshooting.md
   - FAQ: faq.md
