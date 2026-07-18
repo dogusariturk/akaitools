@@ -14,7 +14,7 @@ mpl.use("Agg")
 
 from akaitools import parse_dos, parse_go, parse_spc
 from akaitools.errors import InvalidParameterError, ParseError
-from akaitools.plotting import plot_convergence, plot_dos
+from akaitools.plotting import plot_bsf, plot_convergence, plot_dos
 
 if TYPE_CHECKING:
     from akaitools.models import DOSResult, GOResult, SPCResult
@@ -413,6 +413,53 @@ def plot_scf_cmd(
     try:
         result = parse_go(file)
         fig = plot_convergence(result, field=field)
+    except (ParseError, InvalidParameterError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=1) from None
+    fig.savefig(out_path)
+    typer.echo(f"Saved plot to {out_path}")
+
+
+@plot_app.command("bsf", no_args_is_help=True, help="Plot the Bloch spectral function from an AkaiKKR SPC output file.")
+def plot_bsf_cmd(
+    file: Annotated[Path, typer.Argument(exists=True, help="AkaiKKR SPC output file.")],
+    spin: Annotated[str | None, typer.Option("--spin", help="Spin channel to plot: 'up' or 'down'. Defaults to both.")] = None,
+    ef: Annotated[float, typer.Option("--ef", help="Fermi energy in Ry, subtracted from the energy axis.")] = 0.0,
+    energy_unit: Annotated[str, typer.Option("--energy-unit", help="Energy unit for the axis: 'Ry' or 'eV'.")] = "Ry",
+    cmap: Annotated[str, typer.Option("--cmap", help="Matplotlib colormap name for the BSF intensity heatmap.")] = "YlGnBu",
+    vmax: Annotated[
+        float | None, typer.Option("--vmax", help="Upper color-scale bound. Defaults to the 99.5th percentile of the data.")
+    ] = None,
+    base_dir: Annotated[
+        Path | None, typer.Option("--base-dir", "-b", help="Directory for resolving spectral data files.")
+    ] = None,
+    data_up: Annotated[Path | None, typer.Option("--data-up", help="Explicit path to spin-up spectral data file.")] = None,
+    data_down: Annotated[Path | None, typer.Option("--data-down", help="Explicit path to spin-down spectral data file.")] = None,
+    output: Annotated[
+        Path | None, typer.Option("-o", "--output", help="Output image path. Defaults to '<file stem>.png'.")
+    ] = None,
+) -> None:
+    """Plot the Bloch spectral function from an AkaiKKR SPC output file.
+
+    Args:
+        file: Path to the SPC output file.
+        spin: Spin channel to plot.
+        ef: Fermi energy in Ry, subtracted from the energy axis.
+        energy_unit: Energy unit for the plotted axis.
+        cmap: Matplotlib colormap name for the BSF intensity heatmap.
+        vmax: Upper color-scale bound for the BSF intensity heatmap.
+        base_dir: Directory for resolving spectral data files.
+        data_up: Explicit path to spin-up spectral data file.
+        data_down: Explicit path to spin-down spectral data file.
+        output: Path to write the plot image to.
+
+    Returns:
+        None.
+    """
+    out_path = output if output is not None else Path(f"{file.stem}.png")
+    try:
+        result = parse_spc(file, base_dir=base_dir, data_up=data_up, data_down=data_down)
+        fig = plot_bsf(result, spin=spin, ef=ef, energy_unit=energy_unit, cmap=cmap, vmax=vmax)
     except (ParseError, InvalidParameterError) as exc:
         typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(code=1) from None
