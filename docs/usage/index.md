@@ -42,7 +42,7 @@ Select a topic below to get started.
 
     ---
 
-    Ready-made Matplotlib figures for DOS, spin-resolved DOS, and SCF convergence.
+    Ready-made Matplotlib figures for DOS, spin-resolved DOS, SCF convergence, and the Bloch spectral function.
 
     [:octicons-arrow-right-24: Plotting](plotting.md)
 
