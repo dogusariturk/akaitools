@@ -174,12 +174,10 @@ def _resolve_spectral_path(
         override: Explicit path that, when provided, bypasses auto-discovery.
 
     Returns:
-        The resolved path, or ``None`` if the candidate does not exist.
+        The resolved path, or ``None`` if the candidate does not exist or is empty.
     """
-    if override is not None:
-        return Path(override)
-    candidate = base / f"{file_stem}_{suffix}.spc"
-    return candidate if candidate.exists() else None
+    candidate = Path(override) if override is not None else base / f"{file_stem}_{suffix}.spc"
+    return candidate if candidate.exists() and candidate.stat().st_size > 0 else None
 
 
 class SPCParser:
