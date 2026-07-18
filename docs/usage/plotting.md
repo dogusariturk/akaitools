@@ -45,9 +45,27 @@ fig = plot_convergence(scf, field="rms_error")   # or "moment", "total_energy", 
 fig.savefig("convergence.png", dpi=150)
 ```
 
+## Bloch spectral function (BSF)
+
+```python
+from akaitools.plotting import plot_bsf
+
+fig = plot_bsf(
+    spc,
+    spin=None,                    # "up", "down", or None for both
+    ef=0.0,                       # Fermi energy in Ry, subtracted from the energy axis
+    energy_unit="eV",             # "Ry" or "eV"
+    cmap="YlGnBu",
+    vmax=None,                    # defaults to the 99.5th percentile of the intensity
+)
+fig.savefig("bsf.png", dpi=150)
+```
+
+When `spin=None` and both `spectral_up`/`spectral_down` carry data, the figure has two side-by-side subplots ("Spin up" / "Spin down") sharing the energy axis. High-symmetry k-points are marked with dashed vertical lines and labeled from `KMeshInfo.high_symmetry_indices`. If the relevant channel's `SpectralFunction.data` is `None` (no k-path was computed), a "No spectral data" placeholder is rendered instead of raising.
+
 ## From the command line
 
-Both plots are also available as `akaitools plot` subcommands, so you don't need to write a script:
+All three plots are also available as `akaitools plot` subcommands, so you don't need to write a script:
 
 ```sh
 # DOS plot
@@ -64,6 +82,17 @@ akaitools plot dos fe.dos --orbitals "" -o dos_total.png
 
 # SCF convergence plot
 akaitools plot scf calculation.out --field total_energy_ev -o convergence.png
+
+# BSF plot (both spin channels, if present)
+akaitools plot bsf calculation.spc \
+  --base-dir /path/to/run \
+  --energy-unit eV \
+  --ef 0.0 \
+  --cmap YlGnBu \
+  -o bsf.png
+
+# BSF plot, spin-up only, with an explicit color-scale ceiling
+akaitools plot bsf calculation.spc --spin up --vmax 1.0 -o bsf_up.png
 ```
 
-If `-o/--output` is omitted, the image is written to `<input file stem>.png` in the current directory.
+`akaitools plot bsf` accepts the same `--base-dir`, `--data-up`, and `--data-down` options as `akaitools spc` for locating the spectral data files. If `-o/--output` is omitted, the image is written to `<input file stem>.png` in the current directory.

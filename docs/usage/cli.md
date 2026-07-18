@@ -66,7 +66,15 @@ akaitools plot scf calculation.out -o scf.png
 
 # Plot a different convergence field
 akaitools plot scf calculation.out --field total_energy_ev -o scf_energy.png
+
+# Plot the Bloch spectral function (both spin channels, if present)
+akaitools plot bsf calculation.spc --base-dir /data/run01 --energy-unit eV -o bsf.png
+
+# Plot a single spin channel with an explicit color-scale ceiling
+akaitools plot bsf calculation.spc --spin up --vmax 1.0 -o bsf_up.png
 ```
+
+`akaitools plot bsf` accepts the same `--base-dir`, `--data-up`, and `--data-down` options as `akaitools spc` for locating the spectral data files.
 
 ## Sample output
 

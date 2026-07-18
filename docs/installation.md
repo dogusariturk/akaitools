@@ -115,10 +115,11 @@ comp_up = dos.select(symbol="X", spin="up")
 print(f"X up-spin components: {[comp.component_index for comp in comp_up]}")
 ```
 
-### Plot DOS
+### Plotting
 
 ```python
-from akaitools.plotting import plot_dos
+from akaitools import parse_spc
+from akaitools.plotting import plot_bsf, plot_convergence, plot_dos
 
 # Component-projected DOS, Fermi level shifted to 0
 fig = plot_dos(dos, ef=0.0, orbitals=["total", "d"], energy_unit="eV")
@@ -127,6 +128,15 @@ fig.savefig("dos.png", dpi=150)
 # Component totals plus system total on the same axes
 fig = plot_dos(dos, ef=0.0, orbitals=["total"], system_total=True)
 fig.savefig("dos_overlay.png", dpi=150)
+
+# SCF convergence history
+fig = plot_convergence(scf, field="rms_error")
+fig.savefig("convergence.png", dpi=150)
+
+# Bloch spectral function, energy in eV
+spc = parse_spc("calculation.spc")
+fig = plot_bsf(spc, energy_unit="eV")
+fig.savefig("bsf.png", dpi=150)
 ```
 
 ### Command-line interface

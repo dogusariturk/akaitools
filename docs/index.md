@@ -31,7 +31,7 @@
 - Spin-resolved DOS with direct access via `spin_up`, `spin_down`, `get_component()`, and `select()`
 - Bloch Spectral Function intensity matrix with k-path high-symmetry labels
 - Export any result to a pandas DataFrame for downstream analysis
-- Built-in Matplotlib plotting for DOS and SCF convergence
+- Built-in Matplotlib plotting for DOS, SCF convergence, and the Bloch spectral function
 - Command-line interface for quick summaries and JSON export
 - Generate AkaiKKR input files from scratch or from any parsed result with `InputFile`, or parse existing ones back with `from_file()`/`from_string()`
 - Fully typed: all models are frozen, immutable Python `dataclass` objects
@@ -94,11 +94,12 @@
 === "Plotting"
 
     ```python
-    from akaitools import parse_dos, parse_go
-    from akaitools.plotting import plot_convergence, plot_dos
+    from akaitools import parse_dos, parse_go, parse_spc
+    from akaitools.plotting import plot_bsf, plot_convergence, plot_dos
 
     scf = parse_go("calculation.out")
     dos = parse_dos("dos.out")
+    spc = parse_spc("calculation.spc")
 
     # SCF convergence
     plot_convergence(scf, field="rms_error").savefig("convergence.png", dpi=150)
@@ -108,6 +109,9 @@
 
     # Component totals plus system total on the same axes
     plot_dos(dos, orbitals=["total"], system_total=True, ef=0.0).savefig("dos_overlay.png", dpi=150)
+
+    # Bloch spectral function, energy in eV
+    plot_bsf(spc, energy_unit="eV").savefig("bsf.png", dpi=150)
     ```
 
 === "CLI"
@@ -124,6 +128,9 @@
 
     # JSON output (pipe-friendly)
     akaitools go calculation.out --json | jq .atomic_properties
+
+    # Plot the Bloch spectral function directly, no Python required
+    akaitools plot bsf calculation.spc --energy-unit eV -o bsf.png
     ```
 
 === "Input"

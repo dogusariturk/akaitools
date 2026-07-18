@@ -33,8 +33,8 @@
 - Read Bloch spectral function matrices with automatic spectral-data discovery and high-symmetry k-point labels
 - Work with frozen dataclass models backed by NumPy arrays, with eV conversion helpers on energy-bearing fields
 - Export DOS and SCF iteration data to pandas with `.to_dataframe()`
-- Generate Matplotlib figures for DOS and SCF convergence with `akaitools.plotting`
-- Inspect files from the terminal with `akaitools go|dos|spc`
+- Generate Matplotlib figures for DOS, SCF convergence, and BSF with `akaitools.plotting`
+- Inspect files from the terminal with `akaitools go|dos|spc`, or plot them directly with `akaitools plot dos|scf|bsf`
 - Build AkaiKKR inputs programmatically with `InputFile`, including CPA alloys, multi-site structures, and SPC `KPath` / `KPoint` definitions, or parse existing `.in` files back with `from_file()`/`from_string()`
 
 ---
@@ -128,15 +128,17 @@ if spc.spectral_up is not None and spc.spectral_up.data is not None:
 `akaitools.plotting` provides ready-made Matplotlib figures for the most common visualizations. All functions return a `Figure` object for further customization before saving.
 
 ```python
-from akaitools import parse_dos, parse_go
-from akaitools.plotting import plot_convergence, plot_dos
+from akaitools import parse_dos, parse_go, parse_spc
+from akaitools.plotting import plot_bsf, plot_convergence, plot_dos
 
 scf = parse_go("calculation.out")
 dos = parse_dos("dos.out")
+spc = parse_spc("calculation.spc")
 
 plot_convergence(scf, field="rms_error").savefig("convergence.png")
 plot_dos(dos, orbitals=["total", "d"], energy_unit="eV").savefig("dos.png")
 plot_dos(dos, orbitals=["total"]).savefig("dos_overlay.png")
+plot_bsf(spc, energy_unit="eV").savefig("bsf.png")
 ```
 
 ### CLI
@@ -148,6 +150,14 @@ akaitools go calculation.out                          # summarize SCF output
 akaitools go calculation.out --json                   # output as JSON
 akaitools dos dos.out -c 1                            # DOS summary for component 1
 akaitools spc calculation.spc --base-dir /path/to/run # SPC summary
+```
+
+Plots are also available as `akaitools plot` subcommands, without writing any Python:
+
+```sh
+akaitools plot dos dos.out --orbitals total,d --energy-unit eV -o dos.png
+akaitools plot scf calculation.out --field total_energy_ev -o convergence.png
+akaitools plot bsf calculation.spc --base-dir /path/to/run --energy-unit eV -o bsf.png
 ```
 
 ### Input generation

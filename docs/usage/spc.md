@@ -24,7 +24,7 @@ if bsf is not None:
     km = bsf.kmesh
     print(f"Energy range : {km.energy_min:.4f} – {km.energy_max:.4f} Ry")
     print(f"Energy points: {km.n_energy}")
-    print(f"k-path labels: {km.high_symmetry_indices}")  # e.g. {1: 'G', 25: 'H', 50: 'N'}
+    print(f"k-path labels: {km.high_symmetry_indices}")  # e.g. {1: '(0 0 0)', 80: '(0 1 0)', ...}
 ```
 
 ## BSF intensity matrix
@@ -48,33 +48,14 @@ if bsf is not None and bsf.data is not None:
 
 ## Plotting the spectral function
 
-There is no dedicated `plot_spc` helper yet, but the intensity matrix is a plain NumPy array so Matplotlib's `imshow` or `pcolormesh` work directly:
-
 ```python
-import matplotlib.pyplot as plt
-import numpy as np
+from akaitools.plotting import plot_bsf
 
-bsf = spc.spectral_up
-if bsf is not None and bsf.data is not None:
-    km = bsf.kmesh
-    energy = np.linspace(km.energy_min, km.energy_max, km.n_energy) * 13.6057  # eV
-    kpoints = np.arange(bsf.data.shape[1])
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.pcolormesh(kpoints, energy, bsf.data, cmap="hot_r", shading="auto")
-    ax.axhline(0, color="cyan", lw=0.8, ls="--", label="$E_F$")
-
-    # High-symmetry k-point labels
-    for k_idx, label in km.high_symmetry_indices.items():
-        ax.axvline(k_idx - 1, color="white", lw=0.5, ls="--")
-        ax.text(k_idx - 1, energy[-1], label, ha="center", va="bottom", color="white")
-
-    ax.set_xlabel("k-point index")
-    ax.set_ylabel("Energy (eV)")
-    ax.set_title(f"Bloch Spectral Function ({bsf.spin})")
-    fig.tight_layout()
-    fig.savefig("bsf.png", dpi=150)
+fig = plot_bsf(spc, spin="up", energy_unit="eV")
+fig.savefig("bsf.png", dpi=150)
 ```
+
+See [Plotting](plotting.md#bloch-spectral-function-bsf) for the full set of options (spin filtering, colormap, `vmax`, and the placeholder behavior when a channel's `SpectralFunction.data` is `None`).
 
 ## SPC parameters
 
