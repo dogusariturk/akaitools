@@ -222,3 +222,92 @@ class TestPlotScfCLI:
         """A missing GO file causes a non-zero exit code."""
         result = runner.invoke(app, ["plot", "scf", str(tmp_path / "no_such.out")])
         assert result.exit_code != 0
+
+
+class TestPlotBsfCLI:
+    """Tests for the 'plot bsf' subcommand."""
+
+    def test_plot_bsf_creates_output_file(self, fe_spc: Path, tmp_path: Path) -> None:
+        """The plot bsf command writes a nonempty image file."""
+        output = tmp_path / "bsf.png"
+        result = runner.invoke(app, ["plot", "bsf", str(fe_spc), "--base-dir", str(fe_spc.parent.parent), "-o", str(output)])
+        assert result.exit_code == 0
+        assert output.exists()
+        assert output.stat().st_size > 0
+
+    def test_plot_bsf_default_output_path(self, fe_spc: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Without -o, the plot bsf command writes '<file stem>.png' in the cwd."""
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, ["plot", "bsf", str(fe_spc), "--base-dir", str(fe_spc.parent.parent)])
+        assert result.exit_code == 0
+        expected = tmp_path / f"{fe_spc.stem}.png"
+        assert expected.exists()
+        assert expected.stat().st_size > 0
+
+    def test_plot_bsf_with_options(self, fe_spc: Path, tmp_path: Path) -> None:
+        """The plot bsf command accepts spin, ef, energy-unit, cmap, and vmax."""
+        output = tmp_path / "bsf.png"
+        result = runner.invoke(
+            app,
+            [
+                "plot",
+                "bsf",
+                str(fe_spc),
+                "--base-dir",
+                str(fe_spc.parent.parent),
+                "--spin",
+                "up",
+                "--ef",
+                "0.5",
+                "--energy-unit",
+                "eV",
+                "--cmap",
+                "inferno",
+                "--vmax",
+                "1.0",
+                "-o",
+                str(output),
+            ],
+        )
+        assert result.exit_code == 0
+        assert output.exists()
+        assert output.stat().st_size > 0
+
+    def test_plot_bsf_no_spectral_data_still_succeeds(self, li_spc: Path, tmp_path: Path) -> None:
+        """A file with no spectral data still produces a placeholder image."""
+        output = tmp_path / "bsf.png"
+        result = runner.invoke(app, ["plot", "bsf", str(li_spc), "-o", str(output)])
+        assert result.exit_code == 0
+        assert output.exists()
+        assert output.stat().st_size > 0
+
+    def test_plot_bsf_non_spin_polarized_with_base_dir_succeeds(self, li_spc: Path, tmp_path: Path) -> None:
+        """A non-magnetic result with --base-dir auto-discovers only the up channel."""
+        output = tmp_path / "bsf.png"
+        result = runner.invoke(app, ["plot", "bsf", str(li_spc), "--base-dir", str(li_spc.parent.parent), "-o", str(output)])
+        assert result.exit_code == 0
+        assert output.exists()
+        assert output.stat().st_size > 0
+
+    def test_plot_bsf_invalid_spin_exits_nonzero(self, fe_spc: Path, tmp_path: Path) -> None:
+        """An invalid --spin value causes a non-zero exit code."""
+        output = tmp_path / "bsf.png"
+        result = runner.invoke(
+            app, ["plot", "bsf", str(fe_spc), "--base-dir", str(fe_spc.parent.parent), "--spin", "sideways", "-o", str(output)]
+        )
+        assert result.exit_code != 0
+        assert not output.exists()
+
+    def test_plot_bsf_invalid_energy_unit_exits_nonzero(self, fe_spc: Path, tmp_path: Path) -> None:
+        """An invalid --energy-unit value causes a non-zero exit code."""
+        output = tmp_path / "bsf.png"
+        result = runner.invoke(
+            app, ["plot", "bsf", str(fe_spc), "--base-dir", str(fe_spc.parent.parent), "--energy-unit", "J", "-o", str(output)]
+        )
+        assert result.exit_code != 0
+        assert not output.exists()
+
+    def test_plot_bsf_nonexistent_file_exits_nonzero(self, tmp_path: Path) -> None:
+        """A missing SPC file causes a non-zero exit code."""
+        result = runner.invoke(app, ["plot", "bsf", str(tmp_path / "no_such.spc")])
+        assert result.exit_code != 0
