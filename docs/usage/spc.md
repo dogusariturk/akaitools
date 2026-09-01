@@ -46,6 +46,21 @@ if bsf is not None and bsf.data is not None:
     print(f"BSF row at E_F: {bsf.data[ef_idx, :]}")
 ```
 
+## DataFrame export
+
+`SPCResult.to_dataframe()` returns a tidy long-form frame with one row per `(energy, k, spin)` point, concatenating both spin channels when present:
+
+```python
+df = spc.to_dataframe()
+# columns: energy_Ry  k  spin  intensity
+
+# Intensity along k for the energy point closest to E_F, spin up
+ef_slice = df.query("spin == 'up'")
+ef_slice = ef_slice[ef_slice["energy_Ry"].sub(0.0).abs() == ef_slice["energy_Ry"].sub(0.0).abs().min()]
+```
+
+Channels with no data (`None`, or an uncomputed k-path) are omitted; `to_dataframe()` returns an empty frame with the same columns when neither channel has data.
+
 ## Plotting the spectral function
 
 ```python

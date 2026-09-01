@@ -32,7 +32,7 @@
 - Access spin-resolved DOS through `spin_up`, `spin_down`, `get_component()`, and `select()`
 - Read Bloch spectral function matrices with automatic spectral-data discovery and high-symmetry k-point labels
 - Work with frozen dataclass models backed by NumPy arrays, with eV conversion helpers on energy-bearing fields
-- Export DOS and SCF iteration data to pandas with `.to_dataframe()`
+- Export DOS, SCF iteration, and BSF data to pandas with `.to_dataframe()`
 - Generate Matplotlib figures for DOS, SCF convergence, and BSF with `akaitools.plotting`
 - Inspect files from the terminal with `akaitools go|dos|spc`, or plot them directly with `akaitools plot dos|scf|bsf`
 - Build AkaiKKR inputs programmatically with `InputFile`, including CPA alloys, multi-site structures, and SPC `KPath` / `KPoint` definitions, or parse existing `.in` files back with `from_file()`/`from_string()`
@@ -119,6 +119,8 @@ if spc.spectral_up is not None and spc.spectral_up.data is not None:
     bsf = spc.spectral_up
     print(f"BSF shape: {bsf.data.shape}")
     print(f"k-labels : {bsf.kmesh.high_symmetry_indices}")
+
+df = spc.to_dataframe()  # columns: energy_Ry, k, spin, intensity
 ```
 
 `parse_spc()` auto-locates `*_up.spc` and `*_dn.spc` next to the log file. Use `base_dir`, `data_up`, or `data_down` to override the discovery logic when needed.

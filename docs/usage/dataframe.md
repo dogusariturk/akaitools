@@ -46,3 +46,13 @@ for idx in df["component_index"].unique():
 ```python
 dos.to_dataframe().to_csv("dos_all.csv", index=False)
 ```
+
+## Bloch spectral function (BSF)
+
+```python
+df = spc.to_dataframe()
+# columns: energy_Ry  k  spin  intensity, one row per (energy, k) point per spin channel
+
+# Intensity along k for a fixed energy row, spin up
+row = df.query("spin == 'up' and energy_Ry == energy_Ry.min()")
+```
