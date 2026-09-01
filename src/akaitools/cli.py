@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from importlib.metadata import version as _pkg_version
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 
@@ -22,6 +23,29 @@ if TYPE_CHECKING:
 app = typer.Typer(help="akaitools | Parse AkaiKKR electronic structure output files.", no_args_is_help=True, add_completion=False)
 plot_app = typer.Typer(help="Generate plots from AkaiKKR output files.", no_args_is_help=True)
 app.add_typer(plot_app, name="plot")
+
+
+def _version_callback(value: bool) -> None:
+    """Print the installed akaitools version and exit.
+
+    Args:
+        value: Whether the --version flag was passed.
+
+    Returns:
+        None.
+    """
+    if value:
+        typer.echo(f"akaitools {_pkg_version('akaitools')}")
+        raise typer.Exit
+
+
+@app.callback()
+def main_callback(
+    version: Annotated[
+        bool, typer.Option("--version", callback=_version_callback, is_eager=True, help="Show the akaitools version and exit.")
+    ] = False,
+) -> None:
+    """Akaitools | Parse AkaiKKR electronic structure output files."""
 
 
 def _go_summary(result: GOResult) -> dict:
