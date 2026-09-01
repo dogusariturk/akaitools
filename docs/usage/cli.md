@@ -10,6 +10,11 @@
 
     Or install it once as a global tool (`uv tool install akaitools`) and call `akaitools` directly from any directory.
 
+```sh
+# Print the installed akaitools version
+akaitools --version
+```
+
 ## SCF
 
 ```sh
