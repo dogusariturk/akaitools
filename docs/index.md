@@ -89,6 +89,9 @@
         bsf = spc.spectral_up
         print(f"BSF shape: {bsf.data.shape}")   # (n_energy, n_kpoints)
         print(f"k-labels : {bsf.kmesh.high_symmetry_indices}")
+
+    # Export to pandas
+    df = spc.to_dataframe()  # columns: energy_Ry, k, spin, intensity
     ```
 
 === "Plotting"
