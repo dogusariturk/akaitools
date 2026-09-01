@@ -5,9 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    import numpy as np
+import numpy as np
+import pandas as pd
 
+if TYPE_CHECKING:
     from akaitools.models.go import GOIteration
 
 from akaitools.models.common import CalculationResult
@@ -111,3 +112,37 @@ class SPCResult(CalculationResult):
     iteration: GOIteration | None
     spectral_up: SpectralFunction | None = None
     spectral_down: SpectralFunction | None = None
+
+    def to_dataframe(self) -> pd.DataFrame:
+        """Convert the Bloch spectral function(s) to one tidy long-form pandas DataFrame.
+
+        Returns:
+            A DataFrame with one row per (energy, k-point, spin) triple and
+            columns for energy, k-point index, spin channel, and BSF
+            intensity. Channels with no spectral data (``None``, or an
+            uncomputed k-path) are omitted.
+        """
+        channels = [
+            (spin, sf.kmesh, sf.data)
+            for spin, sf in (("up", self.spectral_up), ("down", self.spectral_down))
+            if sf is not None and sf.data is not None
+        ]
+        if not channels:
+            return pd.DataFrame(columns=["energy_Ry", "k", "spin", "intensity"])
+
+        frames = []
+        for spin, kmesh, data in channels:
+            energy = np.linspace(kmesh.energy_min, kmesh.energy_max, kmesh.n_energy)
+            n_kpts = data.shape[1]
+            energy_grid, k_grid = np.meshgrid(energy, np.arange(n_kpts), indexing="ij")
+            frames.append(
+                pd.DataFrame(
+                    {
+                        "energy_Ry": energy_grid.ravel(),
+                        "k": k_grid.ravel(),
+                        "spin": spin,
+                        "intensity": data.ravel(),
+                    }
+                )
+            )
+        return pd.concat(frames, ignore_index=True)
