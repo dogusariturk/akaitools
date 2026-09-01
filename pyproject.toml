@@ -53,6 +53,7 @@ pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 130
+extend-exclude = ["*.md"]
 
 [tool.ruff.lint]
 select = [
