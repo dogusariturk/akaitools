@@ -21,7 +21,11 @@ from akaitools.models import (
     GOResult,
     HyperfineField,
     InputParams,
+    KMeshInfo,
     LatticeInfo,
+    SPCParams,
+    SPCResult,
+    SpectralFunction,
     SystemInfo,
     ValenceCharge,
 )
@@ -454,6 +458,105 @@ class TestGOResultToDataframe:
         assert df["moment"].tolist() == pytest.approx([it.moment for it in r.iterations])
 
 
+def _make_spectral_function(spin: str, *, n_energy: int = 4, n_kpts: int = 3) -> SpectralFunction:
+    return SpectralFunction(
+        spin=spin,
+        kmesh=KMeshInfo(
+            energy_min=-0.5,
+            energy_max=0.5,
+            n_energy=n_energy,
+            n_sym_points=2,
+            high_symmetry_indices={1: "(0 0 0)", n_kpts: "(1 0 0)"},
+        ),
+        data=np.arange(n_energy * n_kpts, dtype=float).reshape(n_energy, n_kpts),
+    )
+
+
+def _make_spc_result(*, spectral_up: SpectralFunction | None, spectral_down: SpectralFunction | None) -> SPCResult:
+    return SPCResult(
+        **_make_base_kwargs(),
+        spc_params=SPCParams(
+            ew=1.0,
+            ez=0.001,
+            preta=0.1,
+            eta=0.001,
+            symop_labels=("E",),
+            last=1,
+            np=1,
+            ngpt=1,
+            nrpt=1,
+            nk=1,
+            nd=1,
+        ),
+        iteration=None,
+        spectral_up=spectral_up,
+        spectral_down=spectral_down,
+    )
+
+
+class TestSPCResultToDataframe:
+    """Tests for SPCResult.to_dataframe()."""
+
+    def test_columns(self) -> None:
+        """to_dataframe() returns exactly the expected column names in order."""
+        r = _make_spc_result(spectral_up=_make_spectral_function("up"), spectral_down=None)
+        df = r.to_dataframe()
+        assert list(df.columns) == ["energy_Ry", "k", "spin", "intensity"]
+
+    def test_single_channel_row_count(self) -> None:
+        """to_dataframe() produces n_energy * n_kpoints rows for one spin channel."""
+        r = _make_spc_result(spectral_up=_make_spectral_function("up", n_energy=4, n_kpts=3), spectral_down=None)
+        df = r.to_dataframe()
+        assert len(df) == 4 * 3
+        assert set(df["spin"]) == {"up"}
+
+    def test_both_channels_row_count(self) -> None:
+        """to_dataframe() concatenates both spin channels when both are present."""
+        r = _make_spc_result(
+            spectral_up=_make_spectral_function("up", n_energy=4, n_kpts=3),
+            spectral_down=_make_spectral_function("down", n_energy=4, n_kpts=3),
+        )
+        df = r.to_dataframe()
+        assert len(df) == 2 * 4 * 3
+        assert set(df["spin"]) == {"up", "down"}
+
+    def test_no_spectral_data_returns_empty(self) -> None:
+        """to_dataframe() on a result with no spectral data returns an empty DataFrame with correct columns."""
+        r = _make_spc_result(spectral_up=None, spectral_down=None)
+        df = r.to_dataframe()
+        assert len(df) == 0
+        assert list(df.columns) == ["energy_Ry", "k", "spin", "intensity"]
+
+    def test_uncomputed_kpath_channel_is_skipped(self) -> None:
+        """A channel whose data is None (no k-path computed) contributes no rows."""
+        sf = _make_spectral_function("up")
+        empty_sf = SpectralFunction(spin="down", kmesh=sf.kmesh, data=None)
+        r = _make_spc_result(spectral_up=sf, spectral_down=empty_sf)
+        df = r.to_dataframe()
+        assert set(df["spin"]) == {"up"}
+
+    def test_intensity_values(self) -> None:
+        """Intensity column matches the flattened BSF data matrix."""
+        sf = _make_spectral_function("up", n_energy=4, n_kpts=3)
+        r = _make_spc_result(spectral_up=sf, spectral_down=None)
+        df = r.to_dataframe()
+        assert sf.data is not None
+        assert df["intensity"].tolist() == pytest.approx(sf.data.ravel().tolist())
+
+    def test_energy_range(self) -> None:
+        """energy_Ry column spans the kmesh energy_min/energy_max bounds."""
+        r = _make_spc_result(spectral_up=_make_spectral_function("up"), spectral_down=None)
+        df = r.to_dataframe()
+        assert df["energy_Ry"].min() == pytest.approx(-0.5)
+        assert df["energy_Ry"].max() == pytest.approx(0.5)
+
+    def test_k_index_range(self) -> None:
+        """K column ranges over 0..n_kpoints-1."""
+        r = _make_spc_result(spectral_up=_make_spectral_function("up", n_energy=4, n_kpts=3), spectral_down=None)
+        df = r.to_dataframe()
+        assert set(df["k"].unique()) == {0, 1, 2}
+
+
 class TestCalculationResultToDictToJson:
     """Tests for CalculationResult.to_dict() / to_json()."""
 
@@ -524,3 +627,14 @@ class TestCalculationResultToDictToJson:
             data = d["spectral_up"]["data"]
             assert isinstance(data, list)
             assert isinstance(data[0], list)
+
+    def test_spc_to_dataframe_row_count(self, fe_spc: Path) -> None:
+        """SPCResult.to_dataframe() row count matches both spin channels' BSF matrices."""
+        r = parse_spc(fe_spc, base_dir=fe_spc.parent.parent)
+        assert r.spectral_up is not None
+        assert r.spectral_up.data is not None
+        assert r.spectral_down is not None
+        assert r.spectral_down.data is not None
+        df = r.to_dataframe()
+        assert len(df) == r.spectral_up.data.size + r.spectral_down.data.size
+        assert set(df["spin"]) == {"up", "down"}
