@@ -315,10 +315,16 @@ class TestPlotBsfCLI:
 
 
 class TestVersionCLI:
-    """Tests for the '--version' flag."""
+    """Tests for the '--version'/'-V' flag."""
 
     def test_version_prints_version_and_exits_zero(self) -> None:
         """--version prints the installed package version and exits 0."""
         result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.output.strip() == f"akaitools {version('akaitools')}"
+
+    def test_version_short_flag_prints_version_and_exits_zero(self) -> None:
+        """-V prints the installed package version and exits 0."""
+        result = runner.invoke(app, ["-V"])
         assert result.exit_code == 0
         assert result.output.strip() == f"akaitools {version('akaitools')}"
