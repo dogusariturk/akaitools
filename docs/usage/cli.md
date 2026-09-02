@@ -13,6 +13,7 @@
 ```sh
 # Print the installed akaitools version
 akaitools --version
+akaitools -V
 ```
 
 ## SCF
