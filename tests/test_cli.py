@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 import json
+import sys
 from importlib.metadata import version
 from typing import TYPE_CHECKING
 
+import pytest
 from typer.testing import CliRunner
 
-from akaitools.cli import app
+from akaitools.cli import app, main
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    import pytest
 
 runner = CliRunner()
 
@@ -77,6 +77,14 @@ class TestGoCLI:
         assert "calculation" in data
         assert "functional" in data["calculation"]
 
+    def test_go_malformed_file_exits_nonzero(self, tmp_path: Path) -> None:
+        """A file that exists but fails to parse prints an error and exits non-zero."""
+        bad_file = tmp_path / "garbage.out"
+        bad_file.write_text("not an akaikkr file\n")
+        result = runner.invoke(app, ["go", str(bad_file)])
+        assert result.exit_code == 1
+        assert "Error:" in result.output
+
 
 class TestDosCLI:
     """Tests for the 'dos' subcommand."""
@@ -114,6 +122,90 @@ class TestDosCLI:
         result = runner.invoke(app, ["dos", str(fe_dos)])
         assert result.exit_code == 0
         assert "bcc" in result.output
+
+    def test_dos_malformed_file_exits_nonzero(self, tmp_path: Path) -> None:
+        """A file that exists but fails to parse prints an error and exits non-zero."""
+        bad_file = tmp_path / "garbage.dos"
+        bad_file.write_text("not an akaikkr file\n")
+        result = runner.invoke(app, ["dos", str(bad_file)])
+        assert result.exit_code == 1
+        assert "Error:" in result.output
+
+
+class TestSpcCLI:
+    """Tests for the 'spc' subcommand."""
+
+    def test_spc_plain_output_with_spectral_data(self, fe_spc: Path) -> None:
+        """Plain text output includes both spectral channels and k-labels when data files resolve."""
+        result = runner.invoke(app, ["spc", str(fe_spc), "--base-dir", str(fe_spc.parent.parent)])
+        assert result.exit_code == 0
+        assert "Spectral (spin-up):" in result.output
+        assert "Spectral (spin-down):" in result.output
+        assert "k-labels:" in result.output
+        assert "Moment :" in result.output
+
+    def test_spc_plain_output_without_spectral_data(self, li_spc: Path) -> None:
+        """Plain text output reports 'data file not found' for both channels when none resolve."""
+        result = runner.invoke(app, ["spc", str(li_spc)])
+        assert result.exit_code == 0
+        assert "Spectral (spin-up): data file not found" in result.output
+        assert "Spectral (spin-down): data file not found" in result.output
+
+    def test_spc_plain_output_lattice(self, fe_spc: Path) -> None:
+        """Plain text output includes the Bravais lattice type and atomic properties table."""
+        result = runner.invoke(app, ["spc", str(fe_spc)])
+        assert result.exit_code == 0
+        assert "bcc" in result.output
+        assert "Fe" in result.output
+
+    def test_spc_json_is_valid(self, fe_spc: Path) -> None:
+        """JSON output is valid and contains expected keys."""
+        result = runner.invoke(app, ["spc", str(fe_spc), "--base-dir", str(fe_spc.parent.parent), "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert "spc_params" in data
+        assert "spectral_up" in data
+        assert "spectral_down" in data
+        assert data["spectral_up"]["has_data"] is True
+
+    def test_spc_json_no_spectral_data(self, li_spc: Path) -> None:
+        """JSON output has null spectral_up/spectral_down when data files don't resolve."""
+        result = runner.invoke(app, ["spc", str(li_spc), "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["spectral_up"] is None
+        assert data["spectral_down"] is None
+
+    def test_spc_explicit_data_up_down_options(self, fe_spc: Path) -> None:
+        """--data-up and --data-down explicitly override spectral data file resolution."""
+        data_dir = fe_spc.parent.parent / "data"
+        result = runner.invoke(
+            app,
+            [
+                "spc",
+                str(fe_spc),
+                "--data-up",
+                str(data_dir / "fe_up.spc"),
+                "--data-down",
+                str(data_dir / "fe_dn.spc"),
+            ],
+        )
+        assert result.exit_code == 0
+        assert "Spectral (spin-up):" in result.output
+        assert "Spectral (spin-down):" in result.output
+
+    def test_spc_nonexistent_file_exits_nonzero(self, tmp_path: Path) -> None:
+        """A missing SPC file causes a non-zero exit code."""
+        result = runner.invoke(app, ["spc", str(tmp_path / "no_such.spc")])
+        assert result.exit_code != 0
+
+    def test_spc_malformed_file_exits_nonzero(self, tmp_path: Path) -> None:
+        """A file that exists but fails to parse prints an error and exits non-zero."""
+        bad_file = tmp_path / "garbage.spc"
+        bad_file.write_text("not an akaikkr file\n")
+        result = runner.invoke(app, ["spc", str(bad_file)])
+        assert result.exit_code == 1
+        assert "Error:" in result.output
 
 
 class TestPlotDosCLI:
@@ -312,6 +404,20 @@ class TestPlotBsfCLI:
         """A missing SPC file causes a non-zero exit code."""
         result = runner.invoke(app, ["plot", "bsf", str(tmp_path / "no_such.spc")])
         assert result.exit_code != 0
+
+
+class TestMain:
+    """Tests for the 'main' entry point."""
+
+    def test_main_invokes_app(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """main() runs the Typer app against sys.argv."""
+        monkeypatch.setattr(sys, "argv", ["akaitools", "--help"])
+        try:
+            main()
+        except SystemExit as exc:
+            assert exc.code == 0
+        else:
+            pytest.fail("main() should raise SystemExit via the Typer app")
 
 
 class TestVersionCLI:
