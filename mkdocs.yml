@@ -1,5 +1,5 @@
 site_name: akaitools
-site_description: Python library for parsing and analyzing AkaiKKR electronic structure output files
+site_description: Python library for parsing, generating, and visualizing AkaiKKR electronic structure calculation files
 site_author: Doguhan Sariturk
 repo_url: https://github.com/dogusariturk/akaitools
 repo_name: dogusariturk/akaitools

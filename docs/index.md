@@ -14,7 +14,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19874850.svg)](https://doi.org/10.5281/zenodo.19874850)
 [![DOI](https://img.shields.io/badge/DOI-10.48550%2FarXiv.2606.18399-blue.svg)](https://doi.org/10.48550/arXiv.2606.18399)
 
-`akaitools` parses output files from [AkaiKKR](http://kkr.issp.u-tokyo.ac.jp/), a Korringa–Kohn–Rostoker (KKR) Green's function code for electronic structure calculations. It turns raw text output into structured, fully typed Python objects without any manual text wrangling.
+`akaitools` parses output files from [AkaiKKR](http://kkr.issp.u-tokyo.ac.jp/), a Korringa–Kohn–Rostoker (KKR) Green's function code for electronic structure calculations. It turns raw text output into structured, fully typed Python objects and can generate new AkaiKKR input files from scratch or from parsed results.
 
 <p>
   <a href="https://github.com/dogusariturk/akaitools/issues/new?labels=bug">Report a Bug</a> |

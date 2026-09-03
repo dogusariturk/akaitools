@@ -23,6 +23,12 @@
     akaitools --show-completion
     ```
 
+```sh
+# Print the installed akaitools version
+akaitools --version
+akaitools -V
+```
+
 ## SCF
 
 ```sh

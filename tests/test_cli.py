@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from importlib.metadata import version
 from typing import TYPE_CHECKING
 
 from typer.testing import CliRunner
@@ -311,3 +312,19 @@ class TestPlotBsfCLI:
         """A missing SPC file causes a non-zero exit code."""
         result = runner.invoke(app, ["plot", "bsf", str(tmp_path / "no_such.spc")])
         assert result.exit_code != 0
+
+
+class TestVersionCLI:
+    """Tests for the '--version'/'-V' flag."""
+
+    def test_version_prints_version_and_exits_zero(self) -> None:
+        """--version prints the installed package version and exits 0."""
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.output.strip() == f"akaitools {version('akaitools')}"
+
+    def test_version_short_flag_prints_version_and_exits_zero(self) -> None:
+        """-V prints the installed package version and exits 0."""
+        result = runner.invoke(app, ["-V"])
+        assert result.exit_code == 0
+        assert result.output.strip() == f"akaitools {version('akaitools')}"
