@@ -20,7 +20,7 @@ from akaitools.plotting import plot_bsf, plot_convergence, plot_dos
 if TYPE_CHECKING:
     from akaitools.models import DOSResult, GOResult, SPCResult
 
-app = typer.Typer(help="akaitools | Parse AkaiKKR electronic structure output files.", no_args_is_help=True, add_completion=False)
+app = typer.Typer(help="akaitools | Parse AkaiKKR electronic structure output files.", no_args_is_help=True)
 plot_app = typer.Typer(help="Generate plots from AkaiKKR output files.", no_args_is_help=True)
 app.add_typer(plot_app, name="plot")
 

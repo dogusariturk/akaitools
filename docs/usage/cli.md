@@ -10,6 +10,19 @@
 
     Or install it once as a global tool (`uv tool install akaitools`) and call `akaitools` directly from any directory.
 
+!!! tip "Shell completion"
+    Enable tab-completion for commands and options in bash, zsh, fish, or PowerShell:
+
+    ```sh
+    akaitools --install-completion
+    ```
+
+    Or print the completion script to copy or customize it yourself
+
+    ```sh
+    akaitools --show-completion
+    ```
+
 ```sh
 # Print the installed akaitools version
 akaitools --version
