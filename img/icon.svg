@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="140" height="140">
+  <g transform="translate(10,10)">
+
+    <!-- Hexagonal frame -->
+    <polygon
+      points="60,5 108,32.5 108,87.5 60,115 12,87.5 12,32.5"
+      fill="#F4F7F9" stroke="#000000" stroke-width="6" stroke-linejoin="round"/>
+
+    <!-- Outer lattice ring -->
+    <path d="M 60,27   Q 77,31   88.6,43.5" fill="none" stroke="#1C1C2E" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+    <path d="M 88.6,43.5 Q 95,60   88.6,76.5" fill="none" stroke="#1C1C2E" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+    <path d="M 88.6,76.5 Q 77,90   60,93"     fill="none" stroke="#1C1C2E" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+    <path d="M 60,93   Q 43,90   31.4,76.5"   fill="none" stroke="#1C1C2E" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+    <path d="M 31.4,76.5 Q 25,60   31.4,43.5" fill="none" stroke="#1C1C2E" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+    <path d="M 31.4,43.5 Q 43,30   60,27"     fill="none" stroke="#1C1C2E" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+
+    <!-- Muffin-tin spheres — outer atoms -->
+    <circle cx="60"   cy="27"   r="12" fill="none" stroke="#1C1C2E" stroke-width="1.4" stroke-dasharray="3,2.5" opacity="0.42"/>
+    <circle cx="88.6" cy="43.5" r="12" fill="none" stroke="#1C1C2E" stroke-width="1.4" stroke-dasharray="3,2.5" opacity="0.42"/>
+    <circle cx="88.6" cy="76.5" r="12" fill="none" stroke="#1C1C2E" stroke-width="1.4" stroke-dasharray="3,2.5" opacity="0.42"/>
+    <circle cx="60"   cy="93"   r="12" fill="none" stroke="#1C1C2E" stroke-width="1.4" stroke-dasharray="3,2.5" opacity="0.42"/>
+    <circle cx="31.4" cy="76.5" r="12" fill="none" stroke="#1C1C2E" stroke-width="1.4" stroke-dasharray="3,2.5" opacity="0.42"/>
+    <circle cx="31.4" cy="43.5" r="12" fill="none" stroke="#1C1C2E" stroke-width="1.4" stroke-dasharray="3,2.5" opacity="0.42"/>
+
+    <!-- Green's function arcs (CW-trailing, centre → each neighbour) -->
+    <path d="M 60,60 Q 66,43.5 60,27"       fill="none" stroke="#1C1C2E" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M 60,60 Q 77,57   88.6,43.5"   fill="none" stroke="#1C1C2E" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M 60,60 Q 71,73   88.6,76.5"   fill="none" stroke="#1C1C2E" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M 60,60 Q 54,76.5 60,93"       fill="none" stroke="#1C1C2E" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M 60,60 Q 43,63   31.4,76.5"   fill="none" stroke="#1C1C2E" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M 60,60 Q 49,47   31.4,43.5"   fill="none" stroke="#1C1C2E" stroke-width="2.6" stroke-linecap="round"/>
+
+    <!-- Muffin-tin sphere — central site (crimson) -->
+    <circle cx="60" cy="60" r="16" fill="none" stroke="#9B0014" stroke-width="1.6" stroke-dasharray="3,2.5" opacity="0.60"/>
+
+    <!-- Outer atomic sites -->
+    <circle cx="60"   cy="27"   r="6.5" fill="#1C1C2E"/>
+    <circle cx="88.6" cy="43.5" r="6.5" fill="#1C1C2E"/>
+    <circle cx="88.6" cy="76.5" r="6.5" fill="#1C1C2E"/>
+    <circle cx="60"   cy="93"   r="6.5" fill="#1C1C2E"/>
+    <circle cx="31.4" cy="76.5" r="6.5" fill="#1C1C2E"/>
+    <circle cx="31.4" cy="43.5" r="6.5" fill="#1C1C2E"/>
+
+    <!-- Central site (crimson) -->
+    <circle cx="60" cy="60" r="9.5" fill="#9B0014" stroke="#000000" stroke-width="2.2"/>
+
+  </g>
+</svg>
